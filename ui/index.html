@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Second Brain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fbfbfd; --panel:#fff; --ink:#16161a; --ink2:#3a3a44; --mut:#8e8e98;
+  --line:#ececf1; --line2:#e4e4ec; --brand:#5b6ef5; --brand2:#9d7bf5;
+  --chip:#f0f0f5; --ok:#22c55e; --warn:#f59e0b;
+  /* dimension accents */
+  --elicit:#6366f1; --specify:#0ea5e9; --design:#10b981; --dsib:#f59e0b;
+  --opsrisk:#ef4444; --reg:#f97316; --tradeoff:#8b5cf6; --failure:#dc2626;
+  --gov:#0891b2; --controls:#059669; --escalate:#e11d48; --openq:#6b7280;
+  --extra:#7c3aed;
+  --gap:#ef4444;
+  --external:#0d9488;  /* External Intelligence — teal, distinct from local */
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);font-family:'Spline Sans',sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+/* top bar */
+.top{display:flex;align-items:center;gap:11px;padding:14px 22px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:10}
+.orb{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand2));box-shadow:0 4px 12px -2px rgba(91,110,245,.5);position:relative;flex:0 0 auto}
+.orb::after{content:"";position:absolute;inset:8px;border-radius:3px;background:#fff;opacity:.85}
+.brand{font-weight:600;font-size:15px;letter-spacing:-.01em}
+.brand .sub{color:var(--mut);font-weight:400;margin-left:7px;font-size:13px}
+.status{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--mut)}
+.live{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(34,197,94,.18)}
+.vaultsel{font-family:inherit;font-size:12.5px;color:var(--ink2);background:var(--chip);border:1px solid var(--line2);border-radius:8px;padding:5px 9px;cursor:pointer}
+/* thread */
+.thread{flex:1;overflow-y:auto;padding:30px 22px 140px}
+.inner{max-width:900px;margin:0 auto}
+.empty{text-align:center;padding:60px 20px 20px}
+.empty .o2{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--brand),var(--brand2));margin:0 auto 18px;box-shadow:0 10px 30px -8px rgba(91,110,245,.55)}
+.empty h2{font-size:24px;font-weight:600;letter-spacing:-.02em;margin-bottom:8px}
+.empty p{color:var(--mut);font-size:14px;max-width:520px;margin:0 auto 28px;line-height:1.6}
+.seeds{display:flex;flex-direction:column;gap:8px;max-width:620px;margin:0 auto}
+.seed{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:11px 15px;font-size:13.5px;color:var(--ink2);cursor:pointer;text-align:left;transition:.15s}
+.seed:hover{border-color:#c7c7f5;background:#fbfbff}
+.qrow{display:flex;justify-content:flex-end;margin:26px 0 22px;animation:rise .35s ease}
+.qbub{background:var(--ink);color:#fff;font-size:14.5px;padding:11px 16px;border-radius:15px 15px 4px 15px;max-width:75%;line-height:1.5}
+.arow{display:flex;gap:13px;max-width:100%;animation:rise .4s ease}
+.aorb{flex:0 0 28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand2));margin-top:2px}
+.aorb.think{animation:pulse 1.3s ease-in-out infinite}
+.acol{flex:1;min-width:0}
+/* synthesis is now FULL WIDTH, UNBOUNDED */
+.acontent{font-size:14.7px;line-height:1.72;color:var(--ink2);max-width:none}
+.acontent p{margin-bottom:14px}
+.acontent strong{color:var(--ink);font-weight:600}
+.acontent h2{font-size:16.5px;font-weight:600;color:var(--ink);margin:22px 0 10px;letter-spacing:-.01em}
+.acontent h3{font-size:14.5px;font-weight:600;color:var(--ink);margin:18px 0 8px}
+.acontent ul{margin:0 0 14px 20px}
+.acontent ol{margin:0 0 14px 22px}
+.acontent li{margin-bottom:6px;line-height:1.65}
+.acontent .ref{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 4px;background:var(--chip);border:1px solid var(--line2);color:#5f5fb0;font-size:10.5px;font-weight:600;border-radius:5px;cursor:pointer;vertical-align:super;margin:0 1px;font-family:'Spline Sans Mono',monospace}
+.refusal{color:var(--warn);font-style:italic}
+.dots{display:inline-flex;gap:4px;padding:6px 0}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--brand);opacity:.4;animation:bounce 1.2s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+/* section heading above dimensions */
+.dim-heading{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin:24px 0 10px;font-family:'Spline Sans Mono',monospace}
+/* dimensions panel: SINGLE COLUMN, UNCAPPED HEIGHT, full-width readable cards */
+.dimensions{display:flex;flex-direction:column;gap:10px}
+.dim-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden;transition:.18s}
+.dim-card:hover{border-color:#d6d6e6;box-shadow:0 6px 20px -10px rgba(20,20,30,.12)}
+.dim-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent,var(--brand))}
+.dim-card.elicit{--accent:var(--elicit)}
+.dim-card.specify{--accent:var(--specify)}
+.dim-card.design{--accent:var(--design)}
+.dim-card.operational_risks{--accent:var(--opsrisk)}
+.dim-card.regulatory_concerns{--accent:var(--reg)}
+.dim-card.trade_offs{--accent:var(--tradeoff)}
+.dim-card.failure_scenarios{--accent:var(--failure)}
+.dim-card.governance_gaps{--accent:var(--gov)}
+.dim-card.recommended_controls{--accent:var(--controls)}
+.dim-card.escalation_triggers{--accent:var(--escalate)}
+.dim-card.open_questions{--accent:var(--openq)}
+.dim-card.dsib{--accent:var(--dsib)}
+.dim-card.gap{--accent:var(--gap)}
+.dim-card.extra{--accent:var(--extra)}
+.dim-card.external{--accent:var(--external);background:#f0fdfa}
+.dim-label{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent,var(--brand));margin-bottom:8px;font-family:'Spline Sans Mono',monospace}
+.dim-label .dot{width:7px;height:7px;border-radius:50%;background:var(--accent,var(--brand))}
+.dim-text{font-size:13.8px;line-height:1.65;color:var(--ink2)}
+.dim-text strong{color:var(--ink);font-weight:600}
+.dim-text p{margin-bottom:9px}
+.dim-text p:last-child{margin-bottom:0}
+.dim-text ul,.dim-text ol{margin:6px 0 6px 20px}
+.dim-text li{margin-bottom:4px;line-height:1.55}
+.dim-bullets{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.dim-bullets li{position:relative;padding:0 0 0 16px;line-height:1.55;font-size:13.5px}
+.dim-bullets li::before{content:"";position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:50%;background:var(--accent,var(--brand));opacity:.7}
+.dim-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.dim-chip{font-size:11.5px;padding:3px 9px;background:rgba(245,158,11,.1);color:#a26305;border:1px solid rgba(245,158,11,.25);border-radius:999px;font-family:'Spline Sans Mono',monospace;font-weight:500}
+.dim-card.gap .dim-chip{background:rgba(239,68,68,.08);color:#a72e2e;border-color:rgba(239,68,68,.2)}
+.dim-card.external .dim-chip{background:rgba(13,148,136,.1);color:#0f766e;border-color:rgba(13,148,136,.25)}
+/* gaps as a numbered vertical list (each gap is its own line, readable) */
+.gap-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:7px}
+.gap-item{display:flex;gap:9px;align-items:flex-start;background:rgba(239,68,68,.05);border-left:3px solid var(--gap);padding:8px 11px;border-radius:0 8px 8px 0;font-size:13px;line-height:1.55;color:var(--ink2)}
+.gap-num{flex:0 0 20px;height:20px;border-radius:5px;background:var(--gap);color:#fff;font-family:'Spline Sans Mono',monospace;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.gap-text{flex:1;min-width:0}
+/* Research-gaps button */
+.research-btn{margin-top:12px;display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--external);color:var(--external);font-family:inherit;font-size:13px;font-weight:500;padding:9px 14px;border-radius:10px;cursor:pointer;transition:.18s}
+.research-btn:hover{background:#f0fdfa;box-shadow:0 4px 12px -4px rgba(13,148,136,.3)}
+.research-btn:disabled{opacity:.5;cursor:default}
+.research-btn .ico{width:14px;height:14px}
+/* External Intelligence — visually distinct, polished layout */
+.external-block{margin-top:18px;border:1px solid #99f6e4;border-radius:14px;padding:0;background:linear-gradient(180deg,#f0fdfa 0%,#fff 100%);overflow:hidden}
+.external-banner{display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(90deg,#ccfbf1,#f0fdfa);border-bottom:1px solid #99f6e4;flex-wrap:wrap}
+.external-banner .dot{width:9px;height:9px;border-radius:50%;background:var(--external);box-shadow:0 0 0 3px rgba(13,148,136,.18);flex:0 0 auto}
+.external-banner-label{font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--external);font-family:'Spline Sans Mono',monospace}
+.external-banner-sub{font-size:11px;color:#0f766e;opacity:.85;font-style:italic}
+.ext-finding{padding:16px 18px;border-bottom:1px solid #e6fffa;background:#fff}
+.ext-finding:last-of-type{border-bottom:none}
+.ext-finding-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.ext-finding-num{flex:0 0 26px;height:26px;border-radius:8px;background:var(--external);color:#fff;font-family:'Spline Sans Mono',monospace;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.ext-finding-titlewrap{flex:1;min-width:0}
+.ext-finding-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--external);font-family:'Spline Sans Mono',monospace;margin-bottom:3px}
+.ext-finding-title{font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.45;letter-spacing:-.005em}
+.ext-finding-text{font-size:13.7px;line-height:1.7;color:var(--ink2);margin-left:38px}
+.ext-finding-text p{margin-bottom:10px}
+.ext-finding-text p:last-child{margin-bottom:0}
+.ext-finding-text strong{color:var(--ink);font-weight:600}
+.ext-finding-text ul,.ext-finding-text ol{margin:6px 0 10px 20px}
+.ext-finding-text li{margin-bottom:4px;line-height:1.6}
+.cite-group{display:inline-flex;gap:2px;vertical-align:super;margin:0 1px}
+.cite-chip{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;background:#ccfbf1;border:1px solid #5eead4;color:#0f766e;font-size:10px;font-weight:600;border-radius:4px;text-decoration:none;font-family:'Spline Sans Mono',monospace;transition:.15s}
+.cite-chip:hover{background:#99f6e4;border-color:var(--external)}
+.cite-chip.cite-orphan{opacity:.5;cursor:default}
+.ext-sources{margin:14px 0 0 38px;padding:12px 14px;background:#f0fdfa;border:1px solid #ccfbf1;border-radius:10px}
+.ext-sources-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--external);font-family:'Spline Sans Mono',monospace;margin-bottom:8px}
+.ext-source{display:flex;gap:9px;align-items:flex-start;margin-bottom:7px;font-size:12.5px;line-height:1.5}
+.ext-source:last-child{margin-bottom:0}
+.ext-source-num{flex:0 0 18px;height:18px;border-radius:5px;background:#ccfbf1;border:1px solid #5eead4;color:#0f766e;font-family:'Spline Sans Mono',monospace;font-size:10.5px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.ext-source-body{flex:1;min-width:0}
+.ext-source-body a{color:#0f766e;font-weight:500;text-decoration:none;word-break:break-word}
+.ext-source-body a:hover{text-decoration:underline}
+.ext-source-body .pub{display:block;color:var(--mut);font-size:11px;margin-top:2px;font-family:'Spline Sans Mono',monospace}
+.ext-caveat{margin:12px 0 0 38px;font-size:12.5px;color:#92400e;background:#fffbeb;padding:9px 12px;border-radius:8px;border-left:3px solid #f59e0b;line-height:1.55}
+.ext-caveat strong{color:#78350f}
+.ext-overall{margin:0 18px 18px;font-size:12.5px;color:#0f766e;padding:11px 14px;background:#ccfbf1;border-radius:10px;line-height:1.55;border-left:3px solid var(--external)}
+.ext-overall strong{color:#0f766e}
+.ext-error{margin:14px 18px;font-size:13px;color:#a72e2e;padding:11px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px}
+/* source-citation cards (local) */
+.cards{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;width:232px;box-shadow:0 1px 2px rgba(0,0,0,.03);cursor:pointer;transition:.18s;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(var(--brand),var(--brand2));opacity:0;transition:.18s}
+.card:hover{border-color:#c7c7f5;box-shadow:0 10px 24px -10px rgba(91,110,245,.35);transform:translateY(-2px)}
+.card:hover::before{opacity:1}
+.card .cn{position:absolute;top:11px;right:12px;font-family:'Spline Sans Mono';font-size:10px;color:var(--mut)}
+.card .ct{font-size:12.7px;font-weight:600;color:var(--ink);margin-bottom:5px;letter-spacing:-.01em;padding-right:16px;line-height:1.3}
+.card .cv{font-size:11px;color:var(--mut);display:flex;align-items:center;gap:5px}
+.card .cv .vd{width:6px;height:6px;border-radius:2px;background:var(--brand)}
+.card .cs{font-size:10.5px;color:#a0a0aa;margin-top:7px;line-height:1.45}
+.meta{margin-top:13px;font-size:11.5px;color:var(--mut);font-family:'Spline Sans Mono';display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.meta .g{display:inline-flex;align-items:center;gap:5px}
+.bar{width:54px;height:5px;border-radius:3px;background:var(--line2);overflow:hidden;display:inline-block}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand2))}
+.conf-pill{padding:2px 7px;border-radius:6px;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.conf-pill.high{background:rgba(34,197,94,.13);color:#0d7a37}
+.conf-pill.medium{background:rgba(245,158,11,.13);color:#955b04}
+.conf-pill.low{background:rgba(239,68,68,.12);color:#a72e2e}
+/* composer */
+.composer{position:fixed;left:0;right:0;bottom:0;padding:16px 22px 22px;background:linear-gradient(180deg,rgba(251,251,253,0),var(--bg) 32%)}
+.cinner{max-width:900px;margin:0 auto;display:flex;gap:10px;align-items:flex-end;background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:9px 9px 9px 16px;box-shadow:0 12px 40px -16px rgba(20,20,30,.22)}
+.cinner:focus-within{border-color:#c7c7f5;box-shadow:0 12px 40px -14px rgba(91,110,245,.4)}
+#q{flex:1;border:none;outline:none;resize:none;font-family:inherit;font-size:14.5px;color:var(--ink);background:none;line-height:1.5;max-height:140px;padding:6px 0}
+#q::placeholder{color:#b6b6bf}
+.send{flex:0 0 auto;width:36px;height:36px;border:none;border-radius:11px;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.18s}
+.send:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.send:disabled{opacity:.4;cursor:default;transform:none}
+.hint{max-width:900px;margin:8px auto 0;text-align:center;font-size:11px;color:var(--mut)}
+/* ---------- Export PDF button (visible on screen, hidden in print) ---------- */
+.export-row{margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.export-btn{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line2);color:var(--ink2);font-family:inherit;font-size:12.5px;font-weight:500;padding:7px 13px;border-radius:9px;cursor:pointer;transition:.16s}
+.export-btn:hover{border-color:var(--brand);color:var(--brand);box-shadow:0 4px 12px -6px rgba(91,110,245,.3)}
+.export-btn .ico{width:13px;height:13px}
+.export-btn:disabled{opacity:.5;cursor:default}
+
+/* The print-target marker — when printing, only this element prints; rest is hidden */
+body.printing-one .qrow,
+body.printing-one .arow{display:none}
+body.printing-one .qrow.print-target,
+body.printing-one .arow.print-target{display:flex}
+
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(91,110,245,.4)}50%{box-shadow:0 0 0 7px rgba(91,110,245,0)}}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
+
+/* ============================================================
+   PRINT STYLESHEET — fires when window.print() runs
+   ============================================================
+   Goal: pixel-faithful PDF of the answer being exported.
+   Strategy: hide app chrome, expand the thread to full width,
+   preserve all color/styling, add smart page-breaks.
+*/
+@media print {
+  @page {
+    size: letter;
+    margin: 0.6in 0.5in 0.7in 0.5in;
+  }
+
+  /* Force colours/backgrounds to print (browsers strip them by default) */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Hide everything that's not the answer */
+  .top, .composer, .hint, .empty, .send,
+  .research-btn, .export-row,
+  select, .vaultsel, .status {
+    display: none !important;
+  }
+
+  body { background: #fff !important; }
+  .thread { padding: 0 !important; overflow: visible !important; }
+  .inner { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+
+  /* Hide the assistant orb in print — it's just decorative chrome */
+  .aorb { display: none !important; }
+  .arow { gap: 0 !important; }
+
+  /* Question bubble: print as a heading, not an iMessage bubble */
+  .qrow {
+    justify-content: flex-start !important;
+    margin: 0 0 14pt 0 !important;
+    page-break-after: avoid;
+  }
+  .qbub {
+    background: none !important;
+    color: #16161a !important;
+    font-size: 16pt !important;
+    font-weight: 600 !important;
+    padding: 0 0 8pt 0 !important;
+    border-bottom: 2pt solid #5b6ef5 !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+    line-height: 1.4 !important;
+  }
+  .qbub::before {
+    content: "Question";
+    display: block;
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8e8e98;
+    margin-bottom: 4pt;
+  }
+
+  /* The answer column takes full page width when printing */
+  .acol { width: 100% !important; max-width: 100% !important; }
+
+  /* Synthesis (.acontent): keep paragraphs whole; first-page heading */
+  .acontent {
+    font-size: 10.5pt !important;
+    line-height: 1.55 !important;
+    color: #1c1c22 !important;
+  }
+  .acontent::before {
+    content: "Synthesis";
+    display: block;
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #5b6ef5;
+    margin: 12pt 0 6pt;
+    border-bottom: 0.5pt solid #ececf1;
+    padding-bottom: 3pt;
+  }
+  .acontent p { orphans: 3; widows: 3; margin-bottom: 8pt; }
+  .acontent h2, .acontent h3 { page-break-after: avoid; }
+  .acontent ul, .acontent ol { page-break-inside: avoid; }
+
+  /* Section heading above dimensions */
+  .dim-heading {
+    font-size: 9pt !important;
+    color: #5b6ef5 !important;
+    margin: 14pt 0 6pt !important;
+    border-bottom: 0.5pt solid #ececf1;
+    padding-bottom: 3pt;
+  }
+
+  /* Dimension cards: keep each card whole; preserve coloured accent */
+  .dimensions { gap: 7pt !important; }
+  .dim-card {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    padding: 9pt 12pt !important;
+    margin-bottom: 0 !important;
+    border: 0.5pt solid #d4d4dc !important;
+    border-radius: 6pt !important;
+    box-shadow: none !important;
+  }
+  .dim-card::before {
+    width: 2.5pt !important;
+  }
+  .dim-label {
+    font-size: 8.5pt !important;
+    margin-bottom: 5pt !important;
+  }
+  .dim-text { font-size: 9.5pt !important; line-height: 1.45 !important; }
+  .dim-bullets { gap: 3pt !important; }
+  .dim-bullets li { font-size: 9.5pt !important; line-height: 1.45 !important; padding-left: 12pt !important; }
+  .dim-bullets li::before { top: 6pt !important; }
+  .dim-chip { font-size: 8.5pt !important; padding: 1.5pt 6pt !important; }
+  .gap-item { padding: 6pt 9pt !important; font-size: 9.5pt !important; }
+  .gap-num { font-size: 8.5pt !important; }
+
+  /* External Intelligence block — distinct, page-break aware */
+  .external-block {
+    page-break-inside: auto !important;
+    margin-top: 14pt !important;
+    border: 0.5pt solid #5eead4 !important;
+  }
+  .external-banner {
+    padding: 8pt 12pt !important;
+    page-break-after: avoid;
+  }
+  .external-banner-label { font-size: 9.5pt !important; }
+  .external-banner-sub { font-size: 8.5pt !important; }
+  .ext-finding {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    padding: 10pt 14pt !important;
+  }
+  .ext-finding-head { page-break-after: avoid; }
+  .ext-finding-num { font-size: 9pt !important; }
+  .ext-finding-title { font-size: 10pt !important; }
+  .ext-finding-text { font-size: 9.5pt !important; line-height: 1.5 !important; }
+  .ext-sources { page-break-inside: avoid !important; padding: 8pt 12pt !important; }
+  .ext-source { font-size: 9pt !important; }
+  .ext-source-body a {
+    color: #0f766e !important;
+    text-decoration: underline !important;
+  }
+  .ext-source-body .pub { font-size: 8.5pt !important; }
+  .ext-caveat { font-size: 9pt !important; }
+  .ext-overall { font-size: 9pt !important; }
+  .cite-chip { background: #ccfbf1 !important; color: #0f766e !important; }
+
+  /* Source citation cards — render as a tidy reference list */
+  .cards {
+    page-break-inside: avoid !important;
+    gap: 6pt !important;
+    margin-top: 10pt !important;
+  }
+  .cards::before {
+    content: "Sources from your notes";
+    display: block;
+    width: 100%;
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8e8e98;
+    margin-bottom: 4pt;
+  }
+  .card {
+    width: 48% !important;
+    page-break-inside: avoid !important;
+    padding: 7pt 10pt !important;
+    box-shadow: none !important;
+    border: 0.5pt solid #d4d4dc !important;
+  }
+  .card .ct { font-size: 9.5pt !important; }
+  .card .cv { font-size: 8.5pt !important; }
+  .card .cs { font-size: 8pt !important; }
+  .card .cn { font-size: 8pt !important; }
+
+  /* Faithfulness/meta line at the bottom */
+  .meta {
+    page-break-inside: avoid !important;
+    font-size: 8.5pt !important;
+    margin-top: 10pt !important;
+    padding-top: 6pt;
+    border-top: 0.5pt solid #ececf1;
+  }
+
+  /* Bottom footer with provenance + timestamp on every page */
+  .acol::after {
+    content: "Generated from Muhammad Atif's Second Brain · 981 notes · retrieval-grounded · " attr(data-export-stamp);
+    display: block;
+    margin-top: 18pt;
+    padding-top: 6pt;
+    border-top: 0.5pt solid #ececf1;
+    font-size: 7.5pt;
+    color: #8e8e98;
+    font-family: 'Spline Sans Mono', monospace;
+  }
+}
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="orb"></div>
+    <div class="brand">Second Brain<span class="sub">981 notes · 38,394 chunks</span></div>
+    <div class="status">
+      <select class="vaultsel" id="vault"><option value="">All vaults</option></select>
+      <select class="vaultsel" id="provtoggle" title="Generation provider for this query">
+        <option value="">default (.env)</option>
+        <option value="ollama">local (ollama) — unlimited</option>
+        <option value="gemini">gemini 2.5 flash — daily-capped</option>
+      </select>
+      <span class="live"></span><span id="prov">local · grounded</span>
+    </div>
+  </div>
+
+  <div class="thread" id="thread">
+    <div class="inner" id="inner">
+      <div class="empty" id="empty">
+        <div class="o2"></div>
+        <h2>Ask your brain</h2>
+        <p>Exhaustive answers grounded only in your own notes — with BSA/architect dimensions surfaced as additive panels. Gaps stay tagged; external research is an explicit opt-in.</p>
+        <div class="seeds">
+          <div class="seed">We are introducing AI-driven fraud scoring into RTR payments. What operational, regulatory, resilience, and governance concerns emerge?</div>
+          <div class="seed">What are the mandatory controls for application security?</div>
+          <div class="seed">How do I handle duplicate transaction requests on a payments engagement?</div>
+          <div class="seed">Map ISO 42001 Annex A controls to OSFI E-23 expectations.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="composer">
+    <div class="cinner">
+      <textarea id="q" rows="1" placeholder="Ask your brain…"></textarea>
+      <button class="send" id="send" title="Send">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="hint">Answers are retrieval-grounded · External research is opt-in and tagged · <span id="provhint">grounded local</span></div>
+  </div>
+
+<script>
+const API = location.origin;
+const thread=document.getElementById('thread'), inner=document.getElementById('inner');
+const q=document.getElementById('q'), send=document.getElementById('send');
+const empty=document.getElementById('empty'), vaultSel=document.getElementById('vault');
+let busy=false;
+let researchAvailable = false;
+
+// fixed list of dimensions with display labels; model can add extras as snake_case keys
+const FIXED_DIMS = [
+  ['elicit',               'Elicit · Ask stakeholders'],
+  ['specify',              'Specify · Requirement / control'],
+  ['design',               'Design · Decision / trade-off'],
+  ['operational_risks',    'Operational Risks'],
+  ['regulatory_concerns',  'Regulatory Concerns'],
+  ['trade_offs',           'Architectural Trade-offs'],
+  ['failure_scenarios',    'Failure Scenarios'],
+  ['governance_gaps',      'Governance Gaps'],
+  ['recommended_controls', 'Recommended Controls'],
+  ['escalation_triggers',  'Escalation Triggers'],
+  ['open_questions',       'Open Questions'],
+];
+const FIXED_KEYS = new Set(FIXED_DIMS.map(d=>d[0]));
+
+q.addEventListener('input',()=>{q.style.height='auto';q.style.height=Math.min(q.scrollHeight,140)+'px';});
+q.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask();}});
+send.addEventListener('click',ask);
+document.querySelectorAll('.seed').forEach(s=>s.addEventListener('click',()=>{q.value=s.textContent;ask();}));
+
+fetch(API+'/vaults').then(r=>r.json()).then(d=>{
+  (d.vaults||[]).forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;vaultSel.appendChild(o);});
+}).catch(()=>{});
+fetch(API+'/health').then(r=>r.json()).then(d=>{
+  const p = d.gen_provider==='ollama' ? d.gen_model+' · local' : d.gen_model+' · cloud';
+  document.getElementById('prov').textContent=(d.gen_provider==='ollama'?'local':'cloud')+' · grounded';
+  document.getElementById('provhint').textContent=p;
+  researchAvailable = !!d.research_available;
+}).catch(()=>{});
+
+function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+// Markdown-ish formatting — supports headers, lists, bold, paragraphs.
+function fmt(t){
+  if(!t) return '';
+  t = esc(t);
+  t = t.replace(/\[(\d+)\]/g,'<span class="ref">$1</span>');
+  t = t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  // headers
+  t = t.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+  t = t.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+  // bullet lists (consecutive lines starting with - or *)
+  t = t.replace(/(?:^[-*] .+(?:\n|$))+/gm, m => {
+    const items = m.trim().split(/\n/).map(l => l.replace(/^[-*]\s+/,'').trim());
+    return '<ul>'+items.map(i=>'<li>'+i+'</li>').join('')+'</ul>';
+  });
+  // numbered lists — group ALL "N. ..." items even when separated by blank lines.
+  // Markdown treats `1. a\n\n1. b\n\n1. c` as a 3-item list, auto-numbered 1,2,3.
+  // We collapse any run of numbered items (with optional blank-line separators) into one <ol>.
+  t = t.replace(/(?:^\d+\.\s+.+(?:\n(?:\s*\n)*\d+\.\s+.+)*)/gm, m => {
+    const items = m.split(/\n(?:\s*\n)*(?=\d+\.\s+)/)
+                   .map(l => l.replace(/^\d+\.\s+/, '').trim())
+                   .filter(Boolean);
+    return '<ol>'+items.map(i=>'<li>'+i+'</li>').join('')+'</ol>';
+  });
+  // paragraphs (split on blank lines)
+  return t.split(/\n{2,}/).map(p=>{
+    if (/^<(h2|h3|ul|ol)/.test(p.trim())) return p;
+    return '<p>'+p.replace(/\n/g,'<br>')+'</p>';
+  }).join('');
+}
+
+function dimLabel(key){
+  const found = FIXED_DIMS.find(d=>d[0]===key);
+  if(found) return found[1];
+  // extra dimension: humanize the snake_case key
+  return key.replace(/_/g,' ').replace(/\b\w/g, c=>c.toUpperCase());
+}
+
+function renderDimCard(key, value){
+  if(!value) return '';
+  let bodyHtml = '';
+  if(Array.isArray(value)){
+    const items = value.filter(v => v != null && String(v).trim()).map(v => '<li>'+fmt(String(v))+'</li>').join('');
+    if(!items) return '';
+    bodyHtml = '<ul class="dim-bullets">'+items+'</ul>';
+  } else {
+    const text = String(value).trim();
+    if(!text) return '';
+    bodyHtml = fmt(text);
+  }
+  const cls = FIXED_KEYS.has(key) ? key : 'extra';
+  return '<div class="dim-card '+cls+'">'+
+    '<div class="dim-label"><span class="dot"></span>'+esc(dimLabel(key))+'</div>'+
+    '<div class="dim-text">'+bodyHtml+'</div></div>';
+}
+
+function renderAnchorCard(anchors){
+  if(!anchors || !anchors.length) return '';
+  return '<div class="dim-card dsib"><div class="dim-label"><span class="dot"></span>D-SIB Hook · Regulatory Anchors</div>'+
+    '<div class="dim-chips">'+anchors.map(a=>'<span class="dim-chip">'+esc(a)+'</span>').join('')+'</div></div>';
+}
+
+function renderGapsCard(gaps, hasResearchButton, onResearch){
+  if(!gaps || !gaps.length) return null;
+  const items = gaps.map((g,i) =>
+    '<li class="gap-item"><span class="gap-num">'+(i+1)+'</span><span class="gap-text">'+esc(g)+'</span></li>'
+  ).join('');
+  let html = '<div class="dim-card gap">'+
+    '<div class="dim-label"><span class="dot"></span>Gaps · Not in notes</div>'+
+    '<ul class="gap-list">'+items+'</ul>';
+  if(hasResearchButton){
+    html += '<button class="research-btn" type="button">'+
+      '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>'+
+      'Research these gaps externally (web-sourced, clearly tagged)</button>';
+  }
+  html += '</div>';
+  const wrap = el('div','dim-gap-wrap',html);
+  if(hasResearchButton){
+    wrap.querySelector('.research-btn').addEventListener('click', onResearch);
+  }
+  return wrap;
+}
+
+function renderStructured(s, originalQuery, acolEl){
+  if(!s) return null;
+  const parts = [];
+  // Render fixed dimensions in canonical order
+  for(const [k, _] of FIXED_DIMS){
+    const v = s.dimensions ? s.dimensions[k] : '';
+    const c = renderDimCard(k, v);
+    if(c) parts.push(c);
+  }
+  // Then any extra dimensions the model added (preserve their order)
+  if(s.dimensions){
+    for(const k of Object.keys(s.dimensions)){
+      if(!FIXED_KEYS.has(k)){
+        const c = renderDimCard(k, s.dimensions[k]);
+        if(c) parts.push(c);
+      }
+    }
+  }
+  // Regulatory anchors
+  const anchorCard = renderAnchorCard(s.regulatory_anchors);
+  if(anchorCard) parts.push(anchorCard);
+
+  if(!parts.length && (!s.gaps || !s.gaps.length)) return null;
+
+  const wrap = el('div','structured-wrap');
+  if(parts.length){
+    wrap.appendChild(el('div','dim-heading','Analysis dimensions'));
+    const dimContainer = el('div','dimensions', parts.join(''));
+    wrap.appendChild(dimContainer);
+  }
+
+  // Gaps card with optional research button
+  if(s.gaps && s.gaps.length){
+    const gapsCard = renderGapsCard(s.gaps, researchAvailable, ()=>onResearchClick(originalQuery, s.gaps, acolEl));
+    if(gapsCard){
+      const gapWrap = el('div','dimensions');
+      gapWrap.appendChild(gapsCard);
+      wrap.appendChild(gapWrap);
+    }
+  }
+
+  return wrap;
+}
+
+async function onResearchClick(query, gaps, acolEl){
+  const btn = acolEl.querySelector('.research-btn');
+  if(!btn || btn.disabled) return;
+  btn.disabled = true;
+  const originalLabel = btn.innerHTML;
+  btn.innerHTML = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Researching the gaps externally…';
+
+  // remove any prior external block (re-runs replace it)
+  const prior = acolEl.querySelector('.external-block');
+  if(prior) prior.remove();
+
+  try{
+    const res = await fetch(API+'/research_gaps',{method:'POST',headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({query, gaps})});
+    const d = await res.json();
+    renderExternal(acolEl, d);
+  }catch(e){
+    const errBlock = el('div','external-block',
+      '<div class="external-banner"><span class="dot"></span>External Intelligence (web-sourced, not in vault)</div>'+
+      '<div class="ext-error">External research call failed: '+esc(String(e))+'</div>');
+    acolEl.appendChild(errBlock);
+  }finally{
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+    thread.scrollTop = thread.scrollHeight;
+  }
+}
+
+// Strip Gemini grounding markers like [cite: 1, 7, 18] from finding prose,
+// AND turn them into small superscript chips that link to the matching sources.
+function processCiteMarkers(text, sources){
+  if(!text) return '';
+  // Match [cite: N] or [cite: N, M, P]
+  return text.replace(/\[cite:\s*([\d,\s]+)\]/g, (_, nums) => {
+    const ids = nums.split(',').map(n => parseInt(n.trim(), 10)).filter(n => !isNaN(n));
+    if(!ids.length) return '';
+    const chips = ids.map(n => {
+      const s = sources && sources[n - 1];   // Gemini cites are 1-indexed
+      if(s && s.url){
+        return '<a href="'+esc(s.url)+'" target="_blank" rel="noopener" class="cite-chip" title="'+esc(s.title||s.url)+'">'+n+'</a>';
+      }
+      return '<span class="cite-chip cite-orphan" title="source #'+n+'">'+n+'</span>';
+    }).join('');
+    return '<span class="cite-group">'+chips+'</span>';
+  });
+}
+
+function renderExternal(acolEl, d){
+  let body = '';
+
+  if(d.error || d.available === false){
+    body = '<div class="ext-error">'+esc(d.error || 'External research unavailable.')+'</div>';
+  } else if(!d.gap_findings || !d.gap_findings.length){
+    body = '<div class="ext-error">No findings returned for these gaps.</div>';
+  } else {
+    body = d.gap_findings.map((f, idx) => {
+      // process cite markers BEFORE escaping (raw markdown-ish)
+      const findingWithCites = processCiteMarkers(f.finding || '', f.sources);
+      // fmt() handles paragraphs/lists/bold but escapes — so we need to format manually,
+      // then re-insert the cite chips. Approach: escape paragraphs first, then process cites in the escaped text.
+      let formattedFinding = fmt(f.finding || '');
+      formattedFinding = processCiteMarkers(formattedFinding, f.sources);
+
+      let srcHtml = '';
+      if(f.sources && f.sources.length){
+        srcHtml = '<div class="ext-sources"><div class="ext-sources-label">Sources</div>' + f.sources.map((s, i) => {
+          const titleHtml = s.url
+            ? '<a href="'+esc(s.url)+'" target="_blank" rel="noopener">'+esc(s.title || s.url)+'</a>'
+            : esc(s.title || '(no title)');
+          const meta = [s.publisher, s.date].filter(Boolean).map(esc).join(' · ');
+          return '<div class="ext-source">'+
+            '<span class="ext-source-num">'+(i+1)+'</span>'+
+            '<div class="ext-source-body">'+titleHtml+
+              (meta ? '<span class="pub">'+meta+'</span>' : '')+
+            '</div></div>';
+        }).join('') + '</div>';
+      }
+
+      let caveat = '';
+      if(f.caveats) caveat = '<div class="ext-caveat"><strong>Caveat:</strong> '+esc(f.caveats)+'</div>';
+
+      let confChip = '';
+      if(f.confidence){
+        const c = String(f.confidence).toLowerCase();
+        if(['high','medium','low'].includes(c)){
+          confChip = '<span class="conf-pill '+c+'">'+c+'</span>';
+        }
+      }
+
+      return '<div class="ext-finding">'+
+        '<div class="ext-finding-head">'+
+          '<div class="ext-finding-num">'+(idx+1)+'</div>'+
+          '<div class="ext-finding-titlewrap">'+
+            '<div class="ext-finding-label">Gap addressed</div>'+
+            '<div class="ext-finding-title">'+esc(f.gap)+'</div>'+
+          '</div>'+
+          confChip +
+        '</div>'+
+        '<div class="ext-finding-text">'+formattedFinding+'</div>'+
+        srcHtml +
+        caveat +
+      '</div>';
+    }).join('');
+
+    if(d.overall_caveats){
+      body += '<div class="ext-overall"><strong>Overall caveats:</strong> '+esc(d.overall_caveats)+'</div>';
+    }
+  }
+
+  const block = el('div','external-block',
+    '<div class="external-banner">'+
+      '<span class="dot"></span>'+
+      '<span class="external-banner-label">External Intelligence</span>'+
+      '<span class="external-banner-sub">web-sourced · not in vault · independent verification recommended</span>'+
+    '</div>'+
+    body);
+  acolEl.appendChild(block);
+}
+
+async function ask(){
+  const text=q.value.trim(); if(!text||busy) return;
+  busy=true; send.disabled=true;
+  if(empty&&empty.parentNode) empty.remove();
+  q.value=''; q.style.height='auto';
+
+  inner.appendChild(el('div','qrow','<div class="qbub">'+esc(text)+'</div>'));
+  const arow=el('div','arow','<div class="aorb think"></div>');
+  const acol=el('div','acol'); acol.innerHTML='<div class="dots"><i></i><i></i><i></i></div>';
+  arow.appendChild(acol); inner.appendChild(arow);
+  thread.scrollTop=thread.scrollHeight;
+
+  try{
+    const provOverride = document.getElementById('provtoggle').value || null;
+    const res=await fetch(API+'/query',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({query:text, vault:vaultSel.value||null, provider:provOverride})});
+    const d=await res.json();
+    arow.querySelector('.aorb').classList.remove('think');
+    render(acol, d, text);
+  }catch(err){
+    arow.querySelector('.aorb').classList.remove('think');
+    acol.innerHTML='<div class="acontent refusal">Backend unreachable. Start it with <code>python3 app.py</code>.</div>';
+  }
+  busy=false; send.disabled=false; thread.scrollTop=thread.scrollHeight;
+}
+
+function render(acol, d, originalQuery){
+  acol.innerHTML = '';
+
+  if(d.refused){
+    acol.innerHTML = '<div class="acontent refusal">'+esc(d.answer)+'</div>'+
+      '<div class="meta"><span class="g">retrieval below threshold · nothing fabricated</span></div>';
+    return;
+  }
+
+  // 1. EXHAUSTIVE synthesis — full width, unbounded, primary content
+  acol.appendChild(el('div','acontent', fmt(d.answer)));
+
+  // 2. Structured dimensions, only if model produced them
+  const struct = renderStructured(d.structured, originalQuery, acol);
+  if(struct) acol.appendChild(struct);
+
+  // 3. Source-note citations (local)
+  if(d.citations && d.citations.length){
+    const cardsHtml = '<div class="cards">' + d.citations.map(c =>
+      '<div class="card"><span class="cn">['+c.n+']</span>'+
+      '<div class="ct">'+esc(c.note_title)+'</div>'+
+      '<div class="cv"><span class="vd"></span>'+esc(c.vault)+'</div>'+
+      '<div class="cs">§'+esc(c.section)+'</div></div>'
+    ).join('') + '</div>';
+    acol.insertAdjacentHTML('beforeend', cardsHtml);
+
+    const pct = Math.round((d.best_similarity || 0) * 100);
+    let metaHtml = '<div class="meta">'+
+      '<span class="g">faithfulness <div class="bar"><i style="width:'+pct+'%"></i></div> '+pct+'%</span>'+
+      '<span class="g">'+d.citations.length+' sources</span>'+
+      '<span class="g">'+esc(d.provider||'local')+'</span>';
+    if(d.structured && d.structured.confidence){
+      const c = String(d.structured.confidence).toLowerCase();
+      if(['high','medium','low'].includes(c)){
+        metaHtml += '<span class="g">confidence <span class="conf-pill '+c+'">'+c+'</span></span>';
+      }
+    }
+    metaHtml += '</div>';
+    acol.insertAdjacentHTML('beforeend', metaHtml);
+  }
+
+  // 4. Export button (per-answer). Hidden in print via the @media print stylesheet.
+  const exportRow = el('div','export-row');
+  const btn = el('button','export-btn');
+  btn.type = 'button';
+  btn.innerHTML = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export PDF';
+  btn.title = 'Print this answer to PDF using your browser\'s print dialog';
+  btn.addEventListener('click', () => exportAnswerAsPDF(acol, originalQuery));
+  exportRow.appendChild(btn);
+  acol.appendChild(exportRow);
+}
+
+/* -----------------------------------------------------------
+   Export this answer as PDF via the browser's native print engine.
+   Strategy: mark this answer's row as the print-target, briefly toggle
+   body.printing-one (CSS hides every other answer), call print(),
+   then revert. Native PDF quality, no library, full layout fidelity.
+   ----------------------------------------------------------- */
+function slugify(s){
+  return String(s).toLowerCase()
+    .replace(/[^\w\s-]/g,'')
+    .trim().split(/\s+/).slice(0,8).join('-') || 'answer';
+}
+
+function exportAnswerAsPDF(acolEl, originalQuery){
+  // Walk up from .acol to its parent .arow, then find the matching .qrow before it
+  const arow = acolEl.closest('.arow');
+  if(!arow){ window.print(); return; }
+  const qrow = arow.previousElementSibling;
+
+  // Add an export-stamp data attribute so the print footer shows date + question slug
+  const now = new Date();
+  const stamp = now.toISOString().slice(0,16).replace('T',' ') + ' UTC';
+  acolEl.setAttribute('data-export-stamp', stamp);
+
+  // Suggest a filename via document.title (the browser's "Save as PDF" uses this)
+  const originalTitle = document.title;
+  const datePart = now.toISOString().slice(0,10);
+  document.title = 'second-brain-' + datePart + '-' + slugify(originalQuery);
+
+  // Tag this q/a pair as the print target; CSS hides all other rows
+  arow.classList.add('print-target');
+  if(qrow && qrow.classList.contains('qrow')) qrow.classList.add('print-target');
+  document.body.classList.add('printing-one');
+
+  // Fire the print dialog. afterprint always fires when dialog closes (cancel or save).
+  const cleanup = () => {
+    document.body.classList.remove('printing-one');
+    arow.classList.remove('print-target');
+    if(qrow && qrow.classList) qrow.classList.remove('print-target');
+    document.title = originalTitle;
+    acolEl.removeAttribute('data-export-stamp');
+    window.removeEventListener('afterprint', cleanup);
+  };
+  window.addEventListener('afterprint', cleanup);
+  window.print();
+}
+</script>
+</body>
+</html>

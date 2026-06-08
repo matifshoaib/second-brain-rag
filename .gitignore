@@ -1,0 +1,14 @@
+.env
+.env.local
+*.key
+.DS_Store
+__pycache__/
+*.pyc
+*.bak
+chunks.jsonl
+stats.json
+batches/
+chroma/
+source-vault/
+stamped/
+retrieval-eval-report*.md
