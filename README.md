@@ -1,10 +1,10 @@
 # Second Brain
 
-**A local-first, faithfulness-gated RAG system over a 981-note Business Systems Analyst knowledge vault.**
+**A local-first, faithfulness-gated RAG system over a 1100-note Business Systems Analyst knowledge vault.**
 
 > The AI is not the ceiling. The notes are.
 
-This repository contains the **engine** — the retrieval, generation, and evaluation code. The knowledge vault it runs over (981 hand-authored notes, ~452,643 lines, ~2.8M words across 15 sub-vaults) stays private by design. The code is public; the knowledge is not. That separation is the point: this is a system for making *your own* expert knowledge queryable, privately, on your own hardware.
+This repository contains the **engine** — the retrieval, generation, and evaluation code. The knowledge vault it runs over (1100 hand-authored notes, ~452,643 lines, ~2.8M words across 15 sub-vaults) stays private by design. The code is public; the knowledge is not. That separation is the point: this is a system for making *your own* expert knowledge queryable, privately, on your own hardware.
 
 ---
 
