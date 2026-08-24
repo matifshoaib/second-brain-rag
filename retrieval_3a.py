@@ -2,27 +2,23 @@
 """
 retrieval.py — turn a question into a set of grounded, relevant chunks.
 
-Pipeline (Phase 3a HYBRID + Phase 3c RERANK):
+Pipeline (Phase 3a — HYBRID):
   1. Embed the query (local Ollama).
   2. SEMANTIC search in ChromaDB (cosine) -> top CAND_K candidates.
   3. KEYWORD search via BM25 over the same chunks -> top CAND_K candidates.
   4. RECIPROCAL RANK FUSION (RRF) merges the two ranked lists (rank-based,
      no score normalisation) -> the fused ordering.
-  5. REFUSAL GATE: judged on the best *semantic* similarity only. If it is below
+  5. KNOW-vs-DO routing: in "how do I..." mode, the typed how_layer chunks are
+     boosted *within the semantic ranking* before fusion, so execution guidance
+     still surfaces (kept in rank-space, not RRF-score-space).
+  6. REFUSAL GATE: judged on the best *semantic* similarity only. If it is below
      MIN_SIMILARITY we return nothing — BM25 keyword hits never rescue a chunk
      that semantic search says isn't really in the notes (faithfulness guard).
-  6. RERANK (3c): a cross-encoder re-scores the fused top RERANK_POOL pool by
-     true query-document relevance and we keep TOP_K. This is the lever for
-     sibling-disambiguation ("migration" vs "classical impact" in the same
-     module) that neither vectors nor keywords separate.
-  7. KNOW-vs-DO routing: in "how do I..." mode, typed how_layer chunks are
-     nudged — within the semantic ranks feeding RRF (pool entry) and again on
-     the normalised rerank score (final order) — so execution guidance surfaces.
-  8. Graph-hop (optional): pull wikilinked neighbours of the top hits.
+  7. Graph-hop (optional): pull wikilinked neighbours of the top hits.
 
-Each stage degrades cleanly: no cross-encoder -> 3a (hybrid) ordering;
-no rank_bm25 / chunks.jsonl -> semantic-only. The system never hard-fails on a
-missing optional dependency (one-time warning, then carry on).
+If `rank_bm25` is not installed or chunks.jsonl is unavailable, retrieval
+degrades cleanly to the previous semantic-only behaviour (with a one-time
+warning) so the system never hard-fails on a missing dependency.
 
 Exposes retrieve(query) -> dict for generate.py / app.py.
 """
@@ -42,39 +38,20 @@ try:
 except Exception:                       # not installed -> semantic-only fallback
     BM25Okapi = None
 
-# --- optional reranker dependency ----------------------------------------
-try:
-    from sentence_transformers import CrossEncoder
-except Exception:                       # not installed -> 3a (hybrid) fallback
-    CrossEncoder = None
-
 # --- tunables (override in config/.env if desired) -----------------------
 RRF_K          = getattr(config, "RRF_K", 60)               # RRF damping constant
 CAND_K         = getattr(config, "HYBRID_CANDIDATES", 20)   # per-retriever pool
-HOW_BOOST      = getattr(config, "HOW_BOOST", 0.08)         # know-vs-do nudge (rank/0-1 space)
-HYBRID_ENABLED = getattr(config, "HYBRID_ENABLED", True)    # 3a kill-switch
-RERANK_ENABLED = getattr(config, "RERANK_ENABLED", True)    # 3c kill-switch
-RERANK_POOL    = getattr(config, "RERANK_POOL", 20)         # fused candidates to rerank
-RERANK_MODEL   = getattr(config, "RERANK_MODEL", "BAAI/bge-reranker-base")
-RERANK_DEVICE  = getattr(config, "RERANK_DEVICE", None)     # None -> auto (mps/cpu)
-RERANK_MAXLEN  = getattr(config, "RERANK_MAXLEN", 512)
+HOW_BOOST      = getattr(config, "HOW_BOOST", 0.08)         # know-vs-do nudge (rank-space)
+HYBRID_ENABLED = getattr(config, "HYBRID_ENABLED", True)    # kill-switch
 
 _HOW_PATTERNS = re.compile(
-    r"\b(how do i|how do we|how would i|how to|how should|what should i do|"
+    r"\b(how do i|how would i|how to|how should|what should i do|"
     r"steps to|approach to|elicit|specify|design|requirement|"
-    r"as a bsa|what do i ask|how can i|"
-    # --- diagnostic / failure register (bsa_failure) ---
-    r"what goes wrong|what breaks|what fails|goes wrong when|breaks when|"
-    r"fails when|failure mode|failure modes|what happens when|what happens if|"
-    r"root cause|symptom|common mistake|common error|pitfall|gotcha|"
-    r"why does .{0,30}fail|"
-    # --- verification register (bsa_verify) ---
-    r"how do i verify|how do i check|how do i confirm|how do i test|"
-    r"how do i validate|how do i prove|how do i audit|how do i know|"
-    r"verify that|check whether|check that|confirm that|test that|"
-    r"what to look for|red flag|red flags|evidence that)\b",
+    r"as a bsa|what do i ask|how can i)\b",
     re.IGNORECASE,
 )
+
+
 def _looks_like_how(query: str) -> bool:
     return bool(_HOW_PATTERNS.search(query))
 
@@ -190,59 +167,6 @@ def _rrf_fuse(ranked_lists, k: int = 60) -> dict:
     return fused
 
 
-# ------------------------------------------------------------------------
-# Cross-encoder reranker (3c) — loaded once, reused
-# ------------------------------------------------------------------------
-_RERANKER = None
-_RERANKER_TRIED = False
-
-
-def _get_reranker():
-    """Lazily load the cross-encoder. Returns None (disabling 3c) if the
-    dependency or model is unavailable — retrieval then stays at 3a ordering."""
-    global _RERANKER, _RERANKER_TRIED
-    if _RERANKER is not None or _RERANKER_TRIED:
-        return _RERANKER
-    _RERANKER_TRIED = True
-    if CrossEncoder is None:
-        print("[retrieval] WARN: sentence-transformers not installed "
-              "(`pip install sentence-transformers`); reranker off (3a ordering).")
-        return None
-    try:
-        kw = {"max_length": RERANK_MAXLEN}
-        if RERANK_DEVICE:
-            kw["device"] = RERANK_DEVICE
-        print(f"[retrieval] loading reranker '{RERANK_MODEL}' ...", flush=True)
-        _RERANKER = CrossEncoder(RERANK_MODEL, **kw)
-        print("[retrieval] reranker ready.", flush=True)
-    except Exception as e:
-        print(f"[retrieval] WARN: could not load reranker ({e}); 3a ordering.")
-        _RERANKER = None
-    return _RERANKER
-
-
-def _assemble(ids, sem_by_id, col):
-    """Return {id: {text, metadata, similarity}} for a list of ids, reusing the
-    semantic results where present and fetching the rest from Chroma in one get.
-    similarity is the semantic value, or None for chunks only BM25 surfaced."""
-    recs, need = {}, []
-    for cid in ids:
-        if cid in sem_by_id:
-            s = sem_by_id[cid]
-            recs[cid] = {"text": s["text"], "metadata": s["metadata"],
-                         "similarity": s["similarity"]}
-        else:
-            need.append(cid)
-    if need:
-        try:
-            g = col.get(ids=need, include=["documents", "metadatas"])
-            for cid, doc, meta in zip(g["ids"], g["documents"], g["metadatas"]):
-                recs[cid] = {"text": doc, "metadata": meta, "similarity": None}
-        except Exception:
-            pass
-    return recs
-
-
 def retrieve(query: str, vault: str | None = None):
     """
     Returns:
@@ -306,52 +230,31 @@ def retrieve(query: str, vault: str | None = None):
         key=lambda cid: (fused[cid], sem_by_id.get(cid, {}).get("similarity", -1.0)),
         reverse=True,
     )
+    chosen = order[: config.TOP_K]
 
-    # ---- 4) RERANK (3c) — cross-encoder re-scores the fused pool ----
-    pool_ids = order[: max(RERANK_POOL, config.TOP_K)]
-    recs = _assemble(pool_ids, sem_by_id, col)
-    pool_ids = [cid for cid in pool_ids if cid in recs]   # keep only resolvable
-
-    reranker = _get_reranker() if RERANK_ENABLED else None
-    reranked = False
-    if reranker is not None and pool_ids:
+    # fetch text/metadata for any BM25-only ids not in the semantic set
+    need = [cid for cid in chosen if cid not in sem_by_id]
+    fetched = {}
+    if need:
         try:
-            pairs = [(query, recs[cid]["text"]) for cid in pool_ids]
-            scores = [float(s) for s in
-                      reranker.predict(pairs, convert_to_numpy=True,
-                                       show_progress_bar=False)]
-            lo, hi = min(scores), max(scores)
-            rng = (hi - lo) or 1.0
-            final = {}
-            for cid, sc in zip(pool_ids, scores):
-                norm = (sc - lo) / rng                    # 0..1 over the pool
-                if how_mode and recs[cid]["metadata"].get("chunk_type") == "how_layer":
-                    norm += HOW_BOOST                     # preserve know-vs-do
-                final[cid] = norm
-            chosen = sorted(pool_ids, key=lambda c: final[c], reverse=True)[: config.TOP_K]
-            score_for = final
-            reranked = True
-        except Exception as e:
-            print(f"[retrieval] WARN: rerank failed ({e}); using fused order.")
-            chosen = order[: config.TOP_K]
-            score_for = fused
-    else:
-        chosen = order[: config.TOP_K]
-        score_for = fused
+            g = col.get(ids=need, include=["documents", "metadatas"])
+            for cid, doc, meta in zip(g["ids"], g["documents"], g["metadatas"]):
+                fetched[cid] = {"text": doc, "metadata": meta}
+        except Exception:
+            pass
 
     hits = []
     for cid in chosen:
-        r = recs.get(cid) or sem_by_id.get(cid)
-        if not r:
-            continue
-        hits.append({
-            "text": r["text"],
-            "similarity": r.get("similarity"),       # semantic sim, or None (keyword-only)
-            "rank_score": score_for.get(cid),
-            "rrf_score": fused.get(cid),
-            "metadata": r["metadata"],
-            **({"via": "bm25"} if r.get("similarity") is None else {}),
-        })
+        if cid in sem_by_id:
+            s = sem_by_id[cid]
+            hits.append({"text": s["text"], "similarity": s["similarity"],
+                         "rank_score": fused[cid], "rrf_score": fused[cid],
+                         "metadata": s["metadata"]})
+        elif cid in fetched:
+            f = fetched[cid]
+            hits.append({"text": f["text"], "similarity": None,   # keyword-only
+                         "rank_score": fused[cid], "rrf_score": fused[cid],
+                         "metadata": f["metadata"], "via": "bm25"})
 
     # ---- GRAPH-HOP — add wikilinked neighbours of the top hits ----
     if config.GRAPH_HOP and hits:
@@ -382,7 +285,7 @@ def retrieve(query: str, vault: str | None = None):
                     pass
 
     return {"hits": hits, "refused": False, "how_mode": how_mode,
-            "hybrid": hybrid, "reranked": reranked, "top_similarity": top_sim}
+            "hybrid": hybrid, "top_similarity": top_sim}
 
 
 if __name__ == "__main__":
@@ -391,8 +294,7 @@ if __name__ == "__main__":
     out = retrieve(q)
     print(f"query: {q}")
     print(f"how_mode={out['how_mode']}  hybrid={out['hybrid']}  "
-          f"reranked={out['reranked']}  refused={out['refused']}  "
-          f"top_sim={out['top_similarity']:.3f}")
+          f"refused={out['refused']}  top_sim={out['top_similarity']:.3f}")
     for h in out["hits"]:
         m = h["metadata"]
         sim = f"{h['similarity']:.3f}" if h["similarity"] is not None else (

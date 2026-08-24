@@ -8,6 +8,7 @@ This version has:
   - hard force-cut for blocks (e.g. giant tables) that have no natural splits
   - Mac paths pre-set (edit if your username differs)
 """
+import os
 import re, json, hashlib, statistics
 from pathlib import Path
 

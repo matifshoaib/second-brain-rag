@@ -36,22 +36,48 @@ def clean_for_embed(text: str) -> str:
 
 
 
+# mxbai-embed-large has a ~512-token context ceiling. A chunk that exceeds it
+# 500s DETERMINISTICALLY (no retry helps). The chunker targets <=1000 chars, but
+# (a) header-less sections (e.g. glossaries) can slip through far oversized, and
+# (b) dense code/XML chunks tokenize at ~2 chars/token, so even a 1000-char chunk
+# can be ~500 tokens and tip over. We head-truncate the EMBEDDING prompt to a
+# conservative budget that stays under 512 tokens even for the densest content;
+# the full chunk text is still stored as the document, so display/retrieval text
+# is unaffected. 800 chars / ~2 chars-per-token worst case = ~400 tokens, a
+# safe margin under the 512 ceiling for dense code/XML.
+SAFE_EMBED_CHARS = 800
+
+
 def embed_one(text: str, client: httpx.Client) -> list:
-    """Call Ollama's embeddings endpoint for a single chunk, with retry."""
+    """Call Ollama's embeddings endpoint for a single chunk.
+
+    Two failure modes handled:
+      * Oversized input -> deterministic 500. Prevented by truncating the prompt
+        to SAFE_EMBED_CHARS up front (stored document keeps the full text).
+      * Transient 500 under load on small machines (16GB M1) -> ridden out with
+        deep backoff (~60s total). keep_alive=-1 keeps the model resident."""
     import time
+    prompt = clean_for_embed(text)
+    if len(prompt) > SAFE_EMBED_CHARS:
+        prompt = prompt[:SAFE_EMBED_CHARS]      # embed the head; full text stays in the document
+
     last_err = None
-    for attempt in range(4):           # 1 initial + 3 retries
+    backoffs = [1, 2, 4, 8, 15, 30]    # 7 attempts, ~60s worst-case total
+    for attempt in range(len(backoffs) + 1):
         try:
             r = client.post(
                 f"{config.OLLAMA_URL}/api/embeddings",
-                json={"model": config.EMBED_MODEL, "prompt": clean_for_embed(text)},
-                timeout=120.0,
+                json={"model": config.EMBED_MODEL,
+                      "prompt": prompt,
+                      "keep_alive": -1},
+                timeout=180.0,
             )
             r.raise_for_status()
             return r.json()["embedding"]
         except Exception as e:
             last_err = e
-            time.sleep(0.5 * (attempt + 1))   # 0.5s, 1.0s, 1.5s, 2.0s backoff
+            if attempt < len(backoffs):
+                time.sleep(backoffs[attempt])
     raise last_err
 
 

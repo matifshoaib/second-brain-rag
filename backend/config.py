@@ -27,5 +27,18 @@ GEMINI_API_KEY  = os.getenv("GEMINI_API_KEY", "")
 
 # ---- retrieval tuning ----
 TOP_K           = int(os.getenv("TOP_K", "6"))
-MIN_SIMILARITY  = float(os.getenv("MIN_SIMILARITY", "0.35"))  # refusal gate
+MIN_SIMILARITY  = float(os.getenv("MIN_SIMILARITY", "0.35"))  # refusal gate (semantic)
 GRAPH_HOP       = os.getenv("GRAPH_HOP", "true").lower() == "true"
+
+# ---- hybrid retrieval (Phase 3a — BM25 + semantic via RRF) ----
+HYBRID_ENABLED     = os.getenv("HYBRID_ENABLED", "true").lower() == "true"
+RRF_K              = int(os.getenv("RRF_K", "60"))            # RRF damping constant
+HYBRID_CANDIDATES  = int(os.getenv("HYBRID_CANDIDATES", "20"))# per-retriever pool
+HOW_BOOST          = float(os.getenv("HOW_BOOST", "0.08"))    # know-vs-do nudge
+
+# ---- reranker (Phase 3c) — OFF: measured worse than 3a on the 21-q eval ----
+RERANK_ENABLED  = os.getenv("RERANK_ENABLED", "false").lower() == "true"
+RERANK_POOL     = int(os.getenv("RERANK_POOL", "20"))
+RERANK_MODEL    = os.getenv("RERANK_MODEL", "BAAI/bge-reranker-base")
+RERANK_DEVICE   = os.getenv("RERANK_DEVICE") or None          # None -> auto (mps/cpu)
+RERANK_MAXLEN   = int(os.getenv("RERANK_MAXLEN", "512"))

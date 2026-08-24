@@ -60,21 +60,13 @@ RERANK_DEVICE  = getattr(config, "RERANK_DEVICE", None)     # None -> auto (mps/
 RERANK_MAXLEN  = getattr(config, "RERANK_MAXLEN", 512)
 
 _HOW_PATTERNS = re.compile(
-    r"\b(how do i|how do we|how would i|how to|how should|what should i do|"
+    r"\b(how do i|how would i|how to|how should|what should i do|"
     r"steps to|approach to|elicit|specify|design|requirement|"
-    r"as a bsa|what do i ask|how can i|"
-    # --- diagnostic / failure register (bsa_failure) ---
-    r"what goes wrong|what breaks|what fails|goes wrong when|breaks when|"
-    r"fails when|failure mode|failure modes|what happens when|what happens if|"
-    r"root cause|symptom|common mistake|common error|pitfall|gotcha|"
-    r"why does .{0,30}fail|"
-    # --- verification register (bsa_verify) ---
-    r"how do i verify|how do i check|how do i confirm|how do i test|"
-    r"how do i validate|how do i prove|how do i audit|how do i know|"
-    r"verify that|check whether|check that|confirm that|test that|"
-    r"what to look for|red flag|red flags|evidence that)\b",
+    r"as a bsa|what do i ask|how can i)\b",
     re.IGNORECASE,
 )
+
+
 def _looks_like_how(query: str) -> bool:
     return bool(_HOW_PATTERNS.search(query))
 
