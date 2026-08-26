@@ -387,7 +387,7 @@ body.printing-one .arow.print-target{display:flex}
 
   /* Bottom footer with provenance + timestamp on every page */
   .acol::after {
-    content: "Generated from Muhammad Atif's Second Brain · 981 notes · retrieval-grounded · " attr(data-export-stamp);
+    content: "Generated from Muhammad Atif's Second Brain · " attr(data-note-count) " notes · retrieval-grounded · " attr(data-export-stamp);
     display: block;
     margin-top: 18pt;
     padding-top: 6pt;
@@ -402,7 +402,7 @@ body.printing-one .arow.print-target{display:flex}
 <body>
   <div class="top">
     <div class="orb"></div>
-    <div class="brand">Second Brain<span class="sub">981 notes · 38,394 chunks</span></div>
+    <div class="brand">Second Brain<span class="sub" id="brand-stats">loading...</span></div>
     <div class="status">
       <select class="vaultsel" id="vault"><option value="">All vaults</option></select>
       <select class="vaultsel" id="provtoggle" title="Generation provider for this query">
@@ -850,6 +850,20 @@ function exportAnswerAsPDF(acolEl, originalQuery){
   window.addEventListener('afterprint', cleanup);
   window.print();
 }
+</script>
+
+<script>
+(async () => {
+  try {
+    const r = await fetch('/health');
+    const d = await r.json();
+    const n = (d.indexed_notes || 0).toLocaleString();
+    const c = (d.indexed_chunks || 0).toLocaleString();
+    const el = document.getElementById('brand-stats');
+    if (el) el.textContent = `${n} notes \u00B7 ${c} chunks`;
+    document.body.setAttribute('data-note-count', n);
+  } catch (e) { console.error('stats fetch failed', e); }
+})();
 </script>
 </body>
 </html>

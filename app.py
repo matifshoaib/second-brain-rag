@@ -39,6 +39,17 @@ class ResearchRequest(BaseModel):
     gaps: list[str]
 
 
+
+def _note_count():
+    """Read notes_processed from stats.json written by chunker_v2.py."""
+    import json, os
+    try:
+        p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "stats.json")
+        return json.load(open(p)).get("notes_processed", 0)
+    except Exception:
+        return 0
+
+
 @app.get("/health")
 def health():
     ok = True
@@ -53,6 +64,7 @@ def health():
         "gen_model": (config.GEN_MODEL if config.GEN_PROVIDER == "ollama"
                       else config.GEMINI_MODEL),
         "indexed_chunks": n,
+        "indexed_notes": _note_count(),
         "research_available": bool(config.GEMINI_API_KEY),
     }
 
