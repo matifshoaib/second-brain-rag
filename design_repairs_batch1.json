@@ -1,0 +1,55 @@
+{
+  "AAIR-Vault/02-Frameworks-Standards-Regulations/03-NIST-AI-RMF-Map-Function.md": "Forces the decision on which contexts and affected parties are in scope for impact assessment, and whether Map must complete before build starts or can run alongside it.",
+
+  "AAIR-Vault/02-Frameworks-Standards-Regulations/08-ISO-IEC-23894-AI-Risk-Management.md": "Forces the choice between integrating AI risk into the enterprise ISO 31000 process and running a parallel AI register, and who arbitrates when the two disagree.",
+
+  "AAIR-Vault/03-Domain-1-Governance-Framework/09-AI-Risk-Appetite-and-Tolerance.md": "Forces the decision on which KRIs carry the appetite, what a breach triggers, and whether breach halts the system or only escalates.",
+
+  "AAIR-Vault/04-Domain-2-AI-Lifecycle-Risk/01-Domain-2-Overview.md": "Forces the decision on which lifecycle stage owns each control gate, and whether a stage can be skipped for low-tier use cases or is mandatory throughout.",
+
+  "AAIR-Vault/04-Domain-2-AI-Lifecycle-Risk/03-2B-Training-Testing-Validation.md": "Forces the decision on who validates independently of the build team, and whether validation evidence gates deployment or merely informs it.",
+
+  "AAIR-Vault/04-Domain-2-AI-Lifecycle-Risk/06-Data-Quality-and-Bias-Sources.md": "Forces the decision on which features get a proxy-bias audit, which fairness metric applies, and whether a failed audit blocks release or is accepted with written justification.",
+
+  "AAIR-Vault/05-Domain-3-Risk-Program-Management/03-AI-Threats-and-Vulnerabilities-Taxonomy.md": "Forces the decision on which threat classes are in scope for this system type, and which are recorded as accepted exposure rather than controlled.",
+
+  "AAIR-Vault/05-Domain-3-Risk-Program-Management/17-AIBOM-AI-Bill-of-Materials.md": "Forces the decision on AIBOM scope -- models, datasets, prompts, third-party APIs -- and the refresh cadence that keeps it usable during an incident rather than stale.",
+
+  "AWS-Well-Architected/01-Operational-Excellence/OE-Anti-Patterns.md": "Forces the decision on which anti-patterns are accepted as debt with a named owner and which are remediated this cycle, and who signs the acceptance.",
+
+  "AWS-Well-Architected/01-Operational-Excellence/OE-Design-Principles.md": "Forces the choice between procedures as code and documented manual runbooks, and which operations must be reversible rather than merely recoverable.",
+
+  "AWS-Well-Architected/01-Operational-Excellence/OE-Runbooks-and-Playbooks.md": "Forces the decision on which failures earn a tested runbook versus documented tribal knowledge, and who owns runbook currency after each incident.",
+
+  "AWS-Well-Architected/02-Security/SEC-Anti-Patterns.md": "Forces the decision on which security anti-patterns block release and which enter the risk register, and where exception authority sits.",
+
+  "AWS-Well-Architected/02-Security/SEC-Application-Security.md": "Forces the choice between gating release on SAST/DAST findings and reporting them advisory, and which severity threshold actually stops a deployment.",
+
+  "AWS-Well-Architected/02-Security/SEC-Design-Principles.md": "Forces the decision on where least privilege and defence in depth are enforced architecturally versus checked at review, and what gives when either conflicts with a delivery date.",
+
+  "AWS-Well-Architected/02-Security/SEC-Overview.md": "Forces the decision on data classification per workload, and whether the security baseline scales to the most sensitive field present or to the modal one.",
+
+  "AWS-Well-Architected/03-Reliability/REL-Anti-Patterns.md": "Forces the decision on which reliability anti-patterns are acceptable at this service tier, and what evidence is required to close one out.",
+
+  "AWS-Well-Architected/03-Reliability/REL-Design-Principles.md": "Forces the choice between automated recovery and human-in-the-loop failover, and how often resilience is actually exercised rather than assumed.",
+
+  "AWS-Well-Architected/03-Reliability/REL-Quotas-and-Limits.md": "Forces the decision on which quotas carry headroom alerts versus being discovered at failover, and who owns increase requests before peak.",
+
+  "AWS-Well-Architected/04-Performance-Efficiency/PERF-Anti-Patterns.md": "Forces the decision on which performance anti-patterns justify rework and which are accepted latency, and what measurement settles the argument.",
+
+  "AWS-Well-Architected/04-Performance-Efficiency/PERF-Design-Principles.md": "Forces the choice between technology selected on measured fit and technology selected on team familiarity, and what evidence is needed to overrule the latter.",
+
+  "AWS-Well-Architected/05-Cost-Optimization/COST-Anti-Patterns.md": "Forces the decision on tagging discipline, budget ownership, and whether lift-and-shift waste is remediated or accepted as the cost of migration.",
+
+  "AWS-Well-Architected/05-Cost-Optimization/COST-Design-Principles.md": "Forces the decision on which workloads scale with demand versus hold reserved capacity, and who is accountable for idle spend between reviews.",
+
+  "AWS-Well-Architected/05-Cost-Optimization/COST-Rightsizing.md": "Forces the choice between continuous automated rightsizing and periodic manual review, and who accepts the performance risk when a resource is downsized.",
+
+  "AWS-Well-Architected/06-Sustainability/SUS-Anti-Patterns.md": "Forces the decision on which sustainability anti-patterns are measured versus assumed out of scope, and whether idle capacity is treated as a defect or as headroom.",
+
+  "AWS-Well-Architected/06-Sustainability/SUS-Design-Principles.md": "Forces the decision on region selection and utilization targets, and whether efficiency competes with latency or reinforces the cost objective.",
+
+  "AWS-Well-Architected/06-Sustainability/SUS-Overview.md": "Forces the decision on whether environmental impact is a reported metric with a named owner or an unmeasured externality outside the workload's scope.",
+
+  "AWS-Well-Architected/06-Sustainability/SUS-Resource-Efficiency.md": "Forces the decision on utilization floors for compute and storage, and whether carbon and cost are optimized together or traded against each other."
+}

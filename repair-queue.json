@@ -1,0 +1,762 @@
+{
+  "AAIR-Vault/02-Frameworks-Standards-Regulations/03-NIST-AI-RMF-Map-Function.md": {
+    "current_design": "Forces the decision to characterize context and impact before committing to a build.",
+    "elicit": "Ask 'have we mapped the full context — purpose, stakeholders, impacts, and where this AI could cause harm — before building?' — context mapping is skipped in the rush to model."
+  },
+  "AAIR-Vault/02-Frameworks-Standards-Regulations/08-ISO-IEC-23894-AI-Risk-Management.md": {
+    "current_design": "Forces the decision to integrate AI risk into enterprise risk management using the ISO 31000 lineage.",
+    "elicit": "Ask 'does our AI risk process integrate with the enterprise ISO 31000 risk process, or run parallel?' — duplication versus integration is the unstated structural choice."
+  },
+  "AAIR-Vault/03-Domain-1-Governance-Framework/09-AI-Risk-Appetite-and-Tolerance.md": {
+    "current_design": "Forces the decision to translate appetite into concrete, monitored limits.",
+    "elicit": "Ask 'what is our quantified AI risk appetite, and what KRI thresholds translate it into operational limits?' — appetite is stated qualitatively and never operationalized into limits."
+  },
+  "AAIR-Vault/04-Domain-2-AI-Lifecycle-Risk/01-Domain-2-Overview.md": {
+    "current_design": "Forces the decision to embed risk controls across the full AI lifecycle.",
+    "elicit": "Ask 'at which lifecycle stage does each risk enter and which control gates it?' — Domain 2 tests whether risk is managed across the lifecycle, not just at deployment."
+  },
+  "AAIR-Vault/04-Domain-2-AI-Lifecycle-Risk/03-2B-Training-Testing-Validation.md": {
+    "current_design": "Forces the decision to require independent validation gated before deployment.",
+    "elicit": "Ask 'has this model been independently validated, or are we relying on the build team's own test results?' — the validation-independence gap is the classic deployment risk."
+  },
+  "AAIR-Vault/04-Domain-2-AI-Lifecycle-Risk/06-Data-Quality-and-Bias-Sources.md": {
+    "current_design": "Forces the decision to audit features for proxy bias as a validation gate.",
+    "elicit": "Ask 'which features could be proxies for protected attributes, and have we audited for them?' — proxy variables (e.g. postal code for ethnicity) are the bias source nobody volunteers."
+  },
+  "AAIR-Vault/05-Domain-3-Risk-Program-Management/03-AI-Threats-and-Vulnerabilities-Taxonomy.md": {
+    "current_design": "Forces the decision to scope controls to the threats that actually apply to the system type.",
+    "elicit": "Ask 'which threat classes — bias, drift, poisoning, prompt injection, extraction, excessive agency — actually apply to this system?' — teams apply a generic checklist instead of the relevant taxonomy."
+  },
+  "AAIR-Vault/05-Domain-3-Risk-Program-Management/17-AIBOM-AI-Bill-of-Materials.md": {
+    "current_design": "Forces the decision to build an AIBOM registry as the supply-chain transparency mechanism.",
+    "elicit": "Ask 'if a foundation model we use is disclosed to have a vulnerability or disputed training data, can we identify every affected system in minutes?' — supply-chain traceability is the unstated capability gap."
+  },
+  "AAIR-Vault/07-Practical-Application/07-AI-Risk-Workshop-Templates.md": {
+    "current_design": "Forces structured facilitation over ad hoc risk brainstorming, improving completeness.",
+    "elicit": "Use these workshop templates to surface the risks stakeholders won't raise unprompted — the structured prompts are designed to extract the unstated assumptions."
+  },
+  "AI Engineering Vault/07-RAG-and-Agents/Retrieval Optimization — Chunking, Reranking and Query Rewriting.md": {
+    "current_design": "Forces the design discipline that every retrieval change is measured against a benchmark before adoption, because chunking/reranking/rewriting choices have non-obvious, sometimes negative, effects.",
+    "elicit": "Ask what retrieval accuracy the use case requires and whether each optimization (chunking, reranking, query rewriting) actually improves it on the bank's data - optimizations must be measured, since intuitive improvements can regress."
+  },
+  "AI Engineering Vault/09-Data/Dataset Engineering — Data Synthesis and Its Risks.md": {
+    "current_design": "Forces the design decision of whether and how to use synthetic data, weighing scalability against the risk of training or evaluating on data that misrepresents reality.",
+    "elicit": "Ask whether any training or evaluation data is synthetic and, if so, what risks it carries - synthetic data can embed bias, miss real-world tails, or contaminate evaluation, and stakeholders rarely flag it."
+  },
+  "AWS-Well-Architected/01-Operational-Excellence/OE-Anti-Patterns.md": {
+    "current_design": "Forces the decision to actively screen for operational anti-patterns.",
+    "elicit": "Ask 'which operational anti-pattern is this workload drifting toward — manual changes, no observability, hero culture?' — naming it early is the cheapest fix."
+  },
+  "AWS-Well-Architected/01-Operational-Excellence/OE-Design-Principles.md": {
+    "current_design": "Forces the decision to codify and make reversible the operational procedures.",
+    "elicit": "Ask 'are operations procedures as code and reversible, or manual and irreversible?' — manual operational risk is the unstated fragility."
+  },
+  "AWS-Well-Architected/01-Operational-Excellence/OE-Runbooks-and-Playbooks.md": {
+    "current_design": "Forces the decision to codify operational knowledge into tested runbooks.",
+    "elicit": "Ask 'for each known failure, is there a tested runbook, or does response depend on a specific person's memory?' — the key-person operational dependency is the unstated risk."
+  },
+  "AWS-Well-Architected/02-Security/SEC-Anti-Patterns.md": {
+    "current_design": "Forces the decision to actively screen for security anti-patterns.",
+    "elicit": "Ask 'which security anti-pattern is present — over-permissioned roles, hardcoded secrets, flat network?' — naming it early is the cheapest fix."
+  },
+  "AWS-Well-Architected/02-Security/SEC-Application-Security.md": {
+    "current_design": "Forces the decision to embed security testing as release gates.",
+    "elicit": "Ask 'is security testing (SAST/DAST/dependency scanning) in the pipeline, gating release, or a periodic afterthought?' — the security gate placement is assumed."
+  },
+  "AWS-Well-Architected/02-Security/SEC-Design-Principles.md": {
+    "current_design": "Forces the decision to design security in from the start.",
+    "elicit": "Ask 'do we apply least privilege and defence in depth by default, or is security added after the architecture is set?' — security-as-afterthought is the unstated failure."
+  },
+  "AWS-Well-Architected/02-Security/SEC-Overview.md": {
+    "current_design": "Forces the decision to scale security to data sensitivity.",
+    "elicit": "Ask 'what data classification does this workload handle, and does the security posture match the most sensitive data in it?' — the posture-to-sensitivity match is assumed."
+  },
+  "AWS-Well-Architected/03-Reliability/REL-Anti-Patterns.md": {
+    "current_design": "Forces the decision to actively screen for reliability anti-patterns.",
+    "elicit": "Ask 'which reliability anti-pattern is present — single points of failure, untested DR, no health checks?' — naming it early is the cheapest fix."
+  },
+  "AWS-Well-Architected/03-Reliability/REL-Design-Principles.md": {
+    "current_design": "Forces the decision to design for automatic recovery and tested resilience.",
+    "elicit": "Ask 'do we design to recover automatically from failure, or assume failure won't happen?' — the assume-no-failure posture is the unstated fragility."
+  },
+  "AWS-Well-Architected/03-Reliability/REL-Quotas-and-Limits.md": {
+    "current_design": "Forces the decision to manage quotas/limits proactively as a reliability control.",
+    "elicit": "Ask 'which service quotas could we hit under peak or failover, and are they monitored before they bite?' — quota exhaustion is a classic unstated outage cause."
+  },
+  "AWS-Well-Architected/04-Performance-Efficiency/PERF-Anti-Patterns.md": {
+    "current_design": "Forces the decision to actively screen for performance anti-patterns.",
+    "elicit": "Ask 'which performance anti-pattern is present — premature optimization, ignoring caching, single-region latency?' — naming it early is the cheapest fix."
+  },
+  "AWS-Well-Architected/04-Performance-Efficiency/PERF-Design-Principles.md": {
+    "current_design": "Forces the decision to select technology on fit, with evidence.",
+    "elicit": "Ask 'are we choosing technology by fit-for-purpose, or by what the team already knows?' — the familiarity bias drives mismatched technology choices."
+  },
+  "AWS-Well-Architected/05-Cost-Optimization/COST-Anti-Patterns.md": {
+    "current_design": "Forces the decision to actively screen for cost anti-patterns.",
+    "elicit": "Ask 'which cost anti-pattern is present — no tagging, no budgets, lift-and-shift waste?' — naming it early is the cheapest fix."
+  },
+  "AWS-Well-Architected/05-Cost-Optimization/COST-Design-Principles.md": {
+    "current_design": "Forces the decision to design for demand-matched, measured cost efficiency.",
+    "elicit": "Ask 'are we paying for capacity we don't use, and is consumption matched to demand?' — idle/over-provisioned waste is the unstated cost."
+  },
+  "AWS-Well-Architected/05-Cost-Optimization/COST-Rightsizing.md": {
+    "current_design": "Forces the decision to make rightsizing a continuous practice.",
+    "elicit": "Ask 'are resources sized to actual utilization, and is rightsizing continuous or a one-time exercise?' — the ongoing rightsizing discipline is assumed."
+  },
+  "AWS-Well-Architected/06-Sustainability/SUS-Anti-Patterns.md": {
+    "current_design": "Forces the decision to actively screen for sustainability anti-patterns.",
+    "elicit": "Ask 'which sustainability anti-pattern is present — always-on idle, oversized instances, no measurement?' — naming it early is the cheapest fix."
+  },
+  "AWS-Well-Architected/06-Sustainability/SUS-Design-Principles.md": {
+    "current_design": "Forces the decision to treat resource efficiency as a sustainability principle.",
+    "elicit": "Ask 'are we maximizing utilization and choosing efficient regions/services, or running wasteful architectures?' — the efficiency-as-sustainability link is unstated."
+  },
+  "AWS-Well-Architected/06-Sustainability/SUS-Overview.md": {
+    "current_design": "Forces the decision to make environmental impact a measured, owned metric.",
+    "elicit": "Ask 'is the workload's environmental impact measured and owned, or invisible?' — sustainability impact is assumed out of scope."
+  },
+  "AWS-Well-Architected/06-Sustainability/SUS-Resource-Efficiency.md": {
+    "current_design": "Forces the decision to link resource efficiency to carbon and cost.",
+    "elicit": "Ask 'where is compute/storage provisioned far above need, and could right-sizing cut both carbon and cost?' — the over-provisioning is the unstated double cost."
+  },
+  "AWS-Well-Architected/07-WA-Review-Process/WAR-AWS-WA-Tool.md": {
+    "current_design": "Forces the decision to use the tool as a living governance record.",
+    "elicit": "Ask 'are we using the tool to generate evidence and track remediation over time, or just to produce a one-time report?' — the tool's role as a living record is assumed."
+  },
+  "AWS-Well-Architected/07-WA-Review-Process/WAR-Financial-Services-Lens.md": {
+    "current_design": "Forces the decision to translate the FS-Lens into the bank's specific regulatory obligations.",
+    "elicit": "Ask 'which FS-Lens controls map to our specific OSFI and PCI obligations, and where are we short?' — the lens-to-regulation mapping is the unstated deliverable."
+  },
+  "AWS-Well-Architected/07-WA-Review-Process/WAR-How-To-Run-A-Review.md": {
+    "current_design": "Forces treating the WA review as a structured, repeatable gate.",
+    "elicit": "Open every cloud workload review with this method — the recurring gaps (untested DR, over-permissioned IAM, no cost owner) are the ones teams never raise unprompted."
+  },
+  "AWS-Well-Architected/07-WA-Review-Process/WAR-Overview.md": {
+    "current_design": "Forces the decision to run reviews early and iteratively.",
+    "elicit": "Ask 'when in the lifecycle do we run the WA review — early enough to change the design, or as a rubber-stamp before go-live?' — review timing determines its value."
+  },
+  "AWS-Well-Architected/08-Cross-Pillar/AWS-Services-Mapped-To-Pillars.md": {
+    "current_design": "Forces the decision to justify service adoption by pillar outcome.",
+    "elicit": "Ask 'which services actually deliver each pillar's outcomes for us, versus services we adopted without a pillar rationale?' — the service-to-outcome rationale is assumed."
+  },
+  "AWS-Well-Architected/08-Cross-Pillar/Enterprise-Governance-Mapping.md": {
+    "current_design": "Forces the decision to integrate WA review into enterprise governance.",
+    "elicit": "Ask 'how does WA review output feed our enterprise architecture governance and risk processes, or does it sit in a silo?' — the integration with EA/risk governance is the unstated gap."
+  },
+  "AWS-Well-Architected/08-Cross-Pillar/Framework-In-Financial-Services.md": {
+    "current_design": "Forces the decision to adapt the framework to the regulated context explicitly.",
+    "elicit": "Ask 'how does WA actually operate within our regulated context — what's mandatory, what's adapted?' — the regulated-context adaptation is the unstated framing."
+  },
+  "AWS-Well-Architected/09-Learning-Path.md": {
+    "current_design": "Forces the decision to target capability-building at real gaps.",
+    "elicit": "Ask 'which pillars and practices does my team most need to build capability in, given our actual gaps?' — capability gaps are assumed even."
+  },
+  "Azure Architect Vault/01-Well-Architected-Framework/Pillar 2 — Security.md": {
+    "current_design": "Forces the decision to scale security to data sensitivity, by design.",
+    "elicit": "Ask 'does the security posture match the most sensitive data the workload handles, applied at every layer?' — posture-to-sensitivity match is assumed."
+  },
+  "Azure Architect Vault/01-Well-Architected-Framework/Pillar 4 — Operational Excellence.md": {
+    "current_design": "Forces the decision to design operations as an ongoing, codified capability.",
+    "elicit": "Ask 'how do we know the workload is healthy and how do operations improve over time?' — the operational feedback loop is assumed."
+  },
+  "Azure Architect Vault/03-Architecture-Patterns/Cloud Adoption Framework (CAF).md": {
+    "current_design": "Forces the decision to establish governance ahead of workload landing.",
+    "elicit": "Ask 'which CAF stages are we actually executing, and is governance established before workloads land?' — landing workloads ahead of governance is the unstated risk."
+  },
+  "Azure Architect Vault/06-Banking-Real-World/Azure in Banking — OSFI B-13 and Compliance.md": {
+    "current_design": "Forces the decision to map cloud capability to B-13 expectations and close gaps.",
+    "elicit": "Ask 'which specific B-13 expectations does each Azure capability satisfy, and where do residual gaps need compensating controls?' — the capability-to-expectation mapping is the unstated deliverable."
+  },
+  "Azure Architect Vault/06-Banking-Real-World/Financial Services Landing Zone.md": {
+    "current_design": "Forces the decision to embed regulatory guardrails in the landing zone.",
+    "elicit": "Ask 'does the FS landing zone bake in OSFI/PCI guardrails, data residency, and segregation by default for every workload that lands?' — the regulated-by-default design is the unstated requirement."
+  },
+  "Azure Architect Vault/06-Banking-Real-World/Real-World Azure Failures and Lessons.md": {
+    "current_design": "Forces the decision to learn from real failures as a design input.",
+    "elicit": "Ask 'which documented failure mode does our architecture share, and have we controlled for it?' — pattern-matching to real failures is the cheapest risk-identification and is underused."
+  },
+  "CBAP Knowledge Vault/03-Techniques/Risk Analysis and Management.md": {
+    "current_design": "Forces the decision to manage initiative risk explicitly.",
+    "elicit": "Ask 'what are the risks to this initiative's success, with owners and responses, or just an optimistic plan?' — initiative risk is the unstated planning gap."
+  },
+  "CBAP Knowledge Vault/05-Work-Scenarios/Alfalah-01 — T24 Forward Booking and Regulatory Automation.md": {
+    "current_design": "Forces the decision to make regulatory automation provably correct.",
+    "elicit": "Ask 'what are the regulatory rules the automation must enforce, and how do we prove each is correctly implemented?' — the rule-to-evidence mapping is the unstated deliverable."
+  },
+  "CRISC Knowledge Vault/01-Domains/Domain 2 - IT Risk Assessment.md": {
+    "current_design": "Forces the decision to use structured, assessable scenarios.",
+    "elicit": "Ask 'is the risk expressed as a structured scenario — actor, event, vulnerability, impact — or a vague concern?' — unstructured risk statements are the gap this domain tests."
+  },
+  "CRISC Knowledge Vault/01-Domains/Domain 4 - IT and Security.md": {
+    "current_design": "Forces the decision to link controls to risks and test effectiveness.",
+    "elicit": "Ask 'which technical controls actually address the assessed risk, and are they tested for operating effectiveness?' — control-to-risk linkage and effectiveness are assumed."
+  },
+  "CRISC Knowledge Vault/02-Core-Concepts/Enterprise Architecture and Maturity Models.md": {
+    "current_design": "Forces the decision to baseline maturity honestly before setting targets and investment.",
+    "elicit": "Ask 'what maturity level are we actually at for this capability, and what is the realistic target — not the aspirational one?' — the honest current-state maturity is the unstated baseline."
+  },
+  "CRISC Knowledge Vault/02-Core-Concepts/Inherent and Residual Risk.md": {
+    "current_design": "Forces the decision to track inherent-to-residual and compare to tolerance.",
+    "elicit": "Ask 'are we measuring risk before controls (inherent) and after (residual), and is residual within tolerance?' — the inherent/residual distinction is often blurred."
+  },
+  "CRISC Knowledge Vault/02-Core-Concepts/Risk Appetite, Tolerance and Capacity.md": {
+    "current_design": "Forces the decision to translate appetite into monitored limits.",
+    "elicit": "Ask 'is risk appetite quantified and cascaded into tolerances and operational limits, or stated qualitatively?' — operationalizing appetite is the unstated gap."
+  },
+  "CRISC Knowledge Vault/02-Core-Concepts/Risk Profile.md": {
+    "current_design": "Forces the decision to aggregate risks into a decision-useful profile.",
+    "elicit": "Ask 'do we have an aggregated risk profile that leadership actually uses, or just a list of risks?' — the aggregated, decision-useful profile is the unstated need."
+  },
+  "CRISC Knowledge Vault/02-Core-Concepts/Risk Scenario Development.md": {
+    "current_design": "Forces the decision to develop structured, assessable scenarios.",
+    "elicit": "Ask 'does this scenario name the threat actor, event, vulnerability, and impact, or just a vague worry?' — under-structured scenarios are the recurring gap."
+  },
+  "CRISC Knowledge Vault/02-Core-Concepts/Risk Vocabulary.md": {
+    "current_design": "Forces standardizing risk terminology before assessments.",
+    "elicit": "Ask stakeholders to agree risk terms early — 'risk', 'threat', 'vulnerability', 'impact', 'likelihood' are used loosely and corrupt assessments when blurred."
+  },
+  "CRISC Knowledge Vault/02-Core-Concepts/Vulnerability and Control Analysis.md": {
+    "current_design": "Forces the decision to link vulnerabilities to effective controls.",
+    "elicit": "Ask 'where are the exploitable vulnerabilities, and does a control actually mitigate each, or just nominally exist?' — the vulnerability-to-control linkage is assumed."
+  },
+  "CRISC Knowledge Vault/03-Frameworks/Control Frameworks.md": {
+    "current_design": "Forces the decision to integrate frameworks into one control set.",
+    "elicit": "Ask 'which control framework do we map to, and is it one integrated control set or several parallel ones?' — the integration opportunity is the unstated efficiency."
+  },
+  "CRISC Knowledge Vault/03-Frameworks/ISACA Risk IT Framework.md": {
+    "current_design": "Forces the decision to run IT risk as a governed, closed loop.",
+    "elicit": "Ask 'are we governing, evaluating, and responding to IT risk as a closed loop, or only assessing?' — the closed-loop discipline is the unstated structure."
+  },
+  "CRISC Knowledge Vault/03-Frameworks/NIST Risk Management Framework (RMF).md": {
+    "current_design": "Forces the decision to complete the RMF lifecycle through authorization and monitoring.",
+    "elicit": "Ask 'do we categorize, select, implement, assess, authorize, and monitor — or stop at implementation?' — the authorize/monitor steps are the often-skipped ones."
+  },
+  "CRISC Knowledge Vault/04-Techniques/Control Design Worksheet.md": {
+    "current_design": "Forces the decision to design controls with testable effectiveness criteria.",
+    "elicit": "Use this worksheet to force the questions teams skip — control objective, type, owner, test method, and effectiveness evidence — before declaring a control 'done'."
+  },
+  "CRISC Knowledge Vault/04-Techniques/Risk Acceptance Letter.md": {
+    "current_design": "Forces the decision to treat acceptance as a governed, documented decision.",
+    "elicit": "Ask 'who has the authority to accept this residual risk, and is the acceptance documented with rationale and review date?' — acceptance discipline is the unstated control."
+  },
+  "CRISC Knowledge Vault/04-Techniques/Risk Heat Map.md": {
+    "current_design": "Forces the decision to make the heat map a consistent, action-driving tool.",
+    "elicit": "Ask 'does the heat map drive decisions, or just colour a slide — and are likelihood/impact scales consistent?' — scale consistency and decision-use are assumed."
+  },
+  "CRISC Knowledge Vault/04-Techniques/Vendor Risk Questionnaire.md": {
+    "current_design": "Forces the decision to gate vendor onboarding on evidence across the full risk surface.",
+    "elicit": "Use this questionnaire to extract what vendors won't volunteer — subcontractors, data residency, breach history, exit terms — before onboarding."
+  },
+  "CRISC Knowledge Vault/06-Work-Scenarios/Scenario 1 — ACE Risk Assessment.md": {
+    "current_design": "Forces the decision to assess the real system with structured, rated scenarios.",
+    "elicit": "Ask 'what are the structured risk scenarios for the ACE integration — actor, event, vulnerability, impact — across its real failure modes?' — the structured assessment of the actual system is the deliverable."
+  },
+  "CRISC Knowledge Vault/06-Work-Scenarios/Scenario 2 — Risk Treatment Recommendation to VP.md": {
+    "current_design": "Forces the decision to frame risk recommendations around the executive decision.",
+    "elicit": "Ask 'what does the VP need to decide, and have I framed treatment options with cost, residual risk, and a clear recommendation?' — the decision-framing is the unstated requirement."
+  },
+  "CRISC Knowledge Vault/06-Work-Scenarios/Scenario 4 — OSFI Technology Risk Examination.md": {
+    "current_design": "Forces the decision to map expectations to real evidence and close gaps proactively.",
+    "elicit": "Ask 'for the PEIR, what evidence do we actually have versus what we claim — and where are the documentation gaps that an examiner will find?' — the evidence-gap is the unstated exposure."
+  },
+  "CRISC Knowledge Vault/06-Work-Scenarios/Scenario 5 — MT to MX Coexistence Risk Management.md": {
+    "current_design": "Forces the decision to manage coexistence as a distinct, controlled risk phase.",
+    "elicit": "Ask 'what is the data-degradation and reconciliation risk during MT/MX coexistence, and how do we control it through the migration?' — coexistence risk is the unstated migration exposure."
+  },
+  "Card-Payments-Vault/01-Core/03-Capture-and-Clearing.md": {
+    "current_design": "Forces the partial/over-capture tolerance decision and the exception-queue design for the auth-to-clearing mismatches that drive interchange downgrades and disputes.",
+    "elicit": "Ask 'between authorization and capture, what happens if capture never arrives, partial-captures, or arrives after the auth expires?' — the auth-capture gap is where the unstated requirement lives."
+  },
+  "GenAI-for-Banking/04-Governance-and-Risk/05-Model-Inventory-and-Governance-Lifecycle.md": {
+    "current_design": "Forces the decision to maintain a complete, authoritative inventory including discovery of unregistered systems.",
+    "elicit": "Ask 'is there one authoritative inventory of every GenAI system with its tier, owner, and lifecycle stage?' — shadow GenAI outside the inventory is the unstated gap."
+  },
+  "GenAI-for-Banking/05-Security-Threats/02-Prompt-Injection-and-Jailbreaks.md": {
+    "current_design": "Forces the decision to design for injection-as-inevitable and bound its blast radius.",
+    "elicit": "Ask 'if the model is successfully injected, what is the worst it can do — and is that bounded by permissions and human gates, not by the model resisting?' — injection has no clean fix, so impact-bounding is the requirement."
+  },
+  "GenAI-for-Banking/05-Security-Threats/04-Supply-Chain-and-Model-Provenance.md": {
+    "current_design": "Forces the decision to capture model provenance and dependency transparency.",
+    "elicit": "Ask 'what do we actually know about this model's origin, training data, and dependencies — and could we identify exposure if a disclosure hits?' — provenance opacity is the unstated supply-chain risk."
+  },
+  "ISO27001 Knowledge Vault/01-Standard-Structure/2013 vs 2022 Changes.md": {
+    "current_design": "Forces the decision to align to the current standard version.",
+    "elicit": "Ask 'are our controls and SoA aligned to the 2022 structure, or still mapped to the retired 2013 control set?' — the version gap is the unstated compliance drift."
+  },
+  "ISO27001 Knowledge Vault/01-Standard-Structure/Control Attributes — 2022 Framework.md": {
+    "current_design": "Forces the decision to leverage control attributes for coverage analysis.",
+    "elicit": "Ask 'are we using the 2022 control attributes (type, property, concept) to organize and report controls, or ignoring them?' — the attribute taxonomy is an underused organizing tool."
+  },
+  "ISO27001 Knowledge Vault/02-Audit-Methodology/Audit Planning — Stage 1 and Stage 2.md": {
+    "current_design": "Forces the decision to gate Stage 2 on Stage 1 readiness.",
+    "elicit": "Ask 'does Stage 1 confirm readiness (documentation, SoA, scope) before Stage 2 tests effectiveness?' — skipping the readiness check wastes the audit."
+  },
+  "ISO27001 Knowledge Vault/03-Controls-Annex-A/A.5 Organizational Controls — Implementation and Audit Guide.md": {
+    "current_design": "Forces the decision to evidence operating organizational controls.",
+    "elicit": "Ask 'are the organizational controls (policies, roles, supplier, incident) actually operating with evidence, or documented but dormant?' — the operating-versus-documented gap is the unstated risk."
+  },
+  "ISO27001 Knowledge Vault/03-Controls-Annex-A/A.6 People Controls — Implementation and Audit Guide.md": {
+    "current_design": "Forces the decision to evidence operating people controls including JML.",
+    "elicit": "Ask 'are screening, awareness, and joiner-mover-leaver access changes operating, or assumed?' — the JML access control is the recurring people-layer gap."
+  },
+  "ISO27001 Knowledge Vault/03-Controls-Annex-A/A.7 Physical Controls — Implementation and Audit Guide.md": {
+    "current_design": "Forces the decision to cover physical controls including third-party sites.",
+    "elicit": "Ask 'are physical and environmental controls operating for the facilities holding sensitive systems, including third-party sites?' — third-party physical scope is the unstated gap."
+  },
+  "ISO27001 Knowledge Vault/03-Controls-Annex-A/A.8 Technological Controls — Implementation and Audit Guide.md": {
+    "current_design": "Forces the decision to evidence operating, tested technological controls.",
+    "elicit": "Ask 'are the technological controls (access, crypto, logging, secure development, vulnerability mgmt) operating and tested, or just configured once?' — ongoing operation is the unstated requirement."
+  },
+  "ISO27001 Knowledge Vault/03-Controls-Annex-A/All 93 Annex A Controls Reference.md": {
+    "current_design": "Forces the decision to make every control's status explicit and evidenced.",
+    "elicit": "Ask 'for each of the 93 controls, is it applicable, implemented, and evidenced — or is the SoA aspirational?' — the applicability-and-evidence completeness is the unstated audit target."
+  },
+  "ISO27001 Knowledge Vault/04-Banking-Scenarios/OSFI B-13 × ISO 27001 Alignment.md": {
+    "current_design": "Forces the decision to map the standard to B-13 and close the delta.",
+    "elicit": "Ask 'which B-13 expectations does each ISO 27001 control satisfy, and where does B-13 demand more than the standard?' — the standard-to-regulation delta is the unstated mapping."
+  },
+  "ISO27001 Knowledge Vault/04-Banking-Scenarios/Real-World Banking Audit Scenarios.md": {
+    "current_design": "Forces the decision to prepare evidence against likely audit scenarios.",
+    "elicit": "Ask 'which audit scenario does our situation resemble, and have we prepared the evidence it will demand?' — pattern-matching to audit scenarios is the cheapest preparation."
+  },
+  "ISO27001 Knowledge Vault/05-Audit-Evidence/Interview and Evidence Techniques.md": {
+    "current_design": "Forces the decision to corroborate evidence beyond assertion.",
+    "elicit": "Ask 'are we gathering corroborated, sufficient evidence, or accepting assertions?' — evidence sufficiency and corroboration are the unstated audit rigour."
+  },
+  "ISO27001 Knowledge Vault/06-ISMS-Implementation/Risk Assessment and SoA.md": {
+    "current_design": "Forces the decision to ground the SoA in genuine risk assessment.",
+    "elicit": "Ask 'does the SoA flow from a real risk assessment, with every exclusion justified by risk — or is it reverse-engineered to look complete?' — the risk-to-SoA linkage is the unstated integrity check."
+  },
+  "ISO27001 Knowledge Vault/07-Exam-Prep/Lead Auditor Exam — Key Concepts and Scenarios.md": {
+    "current_design": "Forces the decision to study by transferable audit principle.",
+    "elicit": "After each scenario ask 'what audit principle made the right action right, and would I apply it under real pressure?' — principle transfer beats answer recall."
+  },
+  "Modern-Data-Architecture-Vault/05-Data-Lakehouse-and-Storage/01-Lakehouse-Concept.md": {
+    "current_design": "Forces the decision to justify lakehouse unification against the operational reality.",
+    "elicit": "Ask 'do we actually need lakehouse unification, or are we merging a warehouse and lake to chase a pattern?' — the genuine driver versus trend is rarely interrogated."
+  },
+  "Modern-Data-Architecture-Vault/06-Data-Governance-for-Banking/01-BCBS-239.md": {
+    "current_design": "Forces the decision to assess and close BCBS 239 gaps principle by principle.",
+    "elicit": "Ask 'against each of the 14 BCBS 239 principles, where is our actual capability weak — accuracy, completeness, timeliness, adaptability?' — the principle-by-principle gap is assumed closed."
+  },
+  "Modern-Data-Architecture-Vault/06-Data-Governance-for-Banking/03-Data-Catalogs.md": {
+    "current_design": "Forces the decision to make the catalog the authoritative discovery and governance layer.",
+    "elicit": "Ask 'can a user find authoritative data and know its meaning, owner, and quality — or do they guess and create shadow copies?' — discoverability gaps drive ungoverned duplication."
+  },
+  "Modern-Data-Architecture-Vault/06-Data-Governance-for-Banking/05-Data-Quality.md": {
+    "current_design": "Forces the decision to measure data quality with thresholds and defined remediation.",
+    "elicit": "Ask 'what are the measurable quality dimensions and thresholds per critical dataset, and what happens when they breach?' — quality is asserted, not measured with consequences."
+  },
+  "Modern-Data-Architecture-Vault/06-Data-Governance-for-Banking/07-OSFI-E-23-Model-Risk-Data.md": {
+    "current_design": "Forces the decision to govern model-input data with validation-grade provenance.",
+    "elicit": "Ask 'can we evidence the data feeding each model — its source, quality, and lineage — for E-23 validation?' — model-data provenance is assumed available at validation time."
+  },
+  "PMP Knowledge Vault/01-Core-Concepts/Risk Management in Projects.md": {
+    "current_design": "Forces the decision to manage project risk actively.",
+    "elicit": "Ask 'are project risks identified, assessed, with owned responses — or is it an optimistic plan?' — managed project risk is the unstated discipline."
+  },
+  "PMP Knowledge Vault/04-Techniques/Change Control Log.md": {
+    "current_design": "Forces the decision to log and govern all changes.",
+    "elicit": "Ask 'is every change request logged with impact, decision, and approver, or do informal changes go untracked?' — untracked change is the unstated breach."
+  },
+  "PMP Knowledge Vault/04-Techniques/Project Risk Register.md": {
+    "current_design": "Forces the decision to make the register actionable and owned.",
+    "elicit": "Ask 'does each risk have a real owner, response, and trigger — or is the register a static list?' — owned, actionable risks are the unstated requirement."
+  },
+  "PMP Knowledge Vault/05-Work-Scenarios/Real-World/RW-07 SWIFT ISO 20022 CBPR+ Migration (2022–2025).md": {
+    "current_design": "Forces the decision to manage coexistence as a controlled, reconciled phase.",
+    "elicit": "Ask 'how do we manage MT/MX coexistence and data fidelity across the migration window, with reconciliation throughout?' — coexistence data-loss is the unstated migration risk."
+  },
+  "PMP Knowledge Vault/05-Work-Scenarios/Real-World/RW-10 NIST PQC Standardization Project (2016–2024).md": {
+    "current_design": "Forces the decision to design for adaptability under evolving standards.",
+    "elicit": "Ask 'how do we manage a multi-year standards-dependent program where the foundational technology is still being decided?' — the dependency-on-evolving-standard is the unstated risk."
+  },
+  "PMP Knowledge Vault/05-Work-Scenarios/Scenario 3 — CIBC ACE Enterprise Wires Modernization.md": {
+    "current_design": "Forces the decision to govern the payment program holistically.",
+    "elicit": "Ask 'how is the wires-modernization program governed for resilience, screening, ISO 20022 fidelity, and reconciliation end to end?' — the cross-cutting payment governance is the unstated core."
+  },
+  "PMP Knowledge Vault/05-Work-Scenarios/Scenario 4 — Bank Alfalah T24 Treasury Automation.md": {
+    "current_design": "Forces the decision to make treasury automation provably compliant.",
+    "elicit": "Ask 'what regulatory and control requirements must the treasury automation enforce and prove?' — the rule-to-evidence mapping is the unstated deliverable."
+  },
+  "SWIFT-Vault/01-SWIFT-Foundations/02-MT-Messages-Architecture.md": {
+    "current_design": "Forces the canonical-data-model decision: how tag-delimited MT fields map into the internal model without losing data the optional fields carry.",
+    "elicit": "Ask 'which MT message types and fields do our counterparties actually send us, including the optional ones?' — teams design to the mandatory subset and break on the optional fields real correspondents populate."
+  },
+  "SWIFT-Vault/02-MT-to-MX-Migration/06-MT202-to-pacs009-Field-Mapping.md": {
+    "current_design": "Forces the decision logic distinguishing interbank funding-with-customer-context (cover) from pure FI transfers, embedded in routing.",
+    "elicit": "Ask 'when is a plain MT202/pacs.009 sufficient versus when is cover (COV) with embedded customer data legally required?' — the COV distinction is assumed a formatting option, not the compliance rule it is."
+  },
+  "SWIFT-Vault/03-Payment-Hub-Architecture/07-Payment-Hub-Architecture.md": {
+    "current_design": "Forces the hub's most consequential decision: the canonical data model and the lifecycle state machine that governs every payment.",
+    "elicit": "Ask 'what is the one canonical payment model that every rail (SWIFT, LYNX, ACH, RTR, card) maps into, and who owns it?' — teams build rail-by-rail and the unifying model is never named as the central decision."
+  },
+  "SWIFT-Vault/Payments End to End/Confirmation of Payee and Verification of Payee.md": {
+    "current_design": "Forces a latency-sensitive pre-submission integration that degrades gracefully and feeds the outcome into scoring, recognising it is one layer (a coached victim or a mule in a matching name defeats it).",
+    "elicit": "Ask whether the firm verifies the payee name against the account before sending (Confirmation or Verification of Payee) and how the fuzzy-matching is calibrated - too strict yields no-match fatigue, too loose misses, and a no-match the customer overrides is a strong risk signal, not a stop on its own."
+  },
+  "SWIFT-Vault/Payments End to End/Cut-Off Times.md": {
+    "current_design": "Forces cut-off-aware routing (prioritise by time-to-cut-off) and coordinating cut-offs with funding windows, accounting for currency-home-RTGS time zones.",
+    "elicit": "Ask whether the firm maintains a governed cut-off matrix (rail by currency by correspondent by product by value date) and how buffers are sized in the cascade (customer earlier than internal earlier than correspondent earlier than rail) - too tight fails same-day value, too loose is uncompetitive."
+  },
+  "SWIFT-Vault/Payments End to End/Exception Routing.md": {
+    "current_design": "Forces a governed classification-and-routing matrix as an explicit artifact (with cut-off-proximity priority) and treating exception routing as part of the same orchestration fabric as fraud and compliance decisioning.",
+    "elicit": "Ask whether the firm routes exceptions by an explicit classification matrix (class by value by corridor by cut-off by SLA by skills) or dumps everything in one FIFO queue, and whether a sanctions hit is ever misrouted as repair - misclassification is a compliance breach and one-big-queue misses value dates."
+  },
+  "SWIFT-Vault/Payments End to End/FINCopy Resilience.md": {
+    "current_design": "Forces designing the receiver/originator side to tolerate authorisation delay and treating the FINCopy authoriser as a critical third party whose RTO bounds the firm's tolerance.",
+    "elicit": "Ask which FINCopy mode each rail uses (Y-copy authoriser in-line versus T-copy informational) and what happens when the central authoriser is down - under Y-copy the firm's impact tolerance is bounded by the authoriser's RTO, and messages stall (controlled, not lost) awaiting authorisation."
+  },
+  "SWIFT-Vault/Payments End to End/FedNow Service - US Instant Payments.md": {
+    "current_design": "Forces a 24/7 liquidity monitoring and auto-replenishment design and pre-send/receiver-side fraud controls (irrevocable instant has no clawback), plus per-RTN participation profiles.",
+    "elicit": "Ask how the firm keeps its FedNow master-account balance funded around the clock (Liquidity Management Transfers, weekend windows) and what receiver-side fraud controls apply - instant credit-push is irrevocable, so a stranded weekend balance means failed inbound and there is no clawback."
+  },
+  "SWIFT-Vault/Payments End to End/Fraud Orchestration Layer.md": {
+    "current_design": "Forces a single decision point (consistent policy across channels) that abstracts vendors so a model or vendor can be swapped without touching the payment flow, with parallel fan-out inside the SLA budget.",
+    "elicit": "Ask whether the firm has a single decision fabric that ingests all fraud signals (CoP/VoP, device, behavioural, scoring, mule graph, sanctions, KYC) and applies one policy, or siloed point tools with inconsistent per-channel decisions - orchestration is fundamentally a systems-integration and decisioning problem."
+  },
+  "SWIFT-Vault/Payments End to End/MT Category 4 - Collections and Cash Letters.md": {
+    "current_design": "Forces the workflow and state-machine design for documentary collections and the clear separation from documentary credits (no bank payment undertaking) in the operating model.",
+    "elicit": "Ask how the firm tracks the collection state machine (acknowledge, accept or refuse, tracer, fate, payment) and where the exporter's risk sits - in a collection the bank only handles documents and does not guarantee payment, which changes the risk conversation entirely."
+  },
+  "SWIFT-Vault/Payments End to End/MT Category 9 - Cash Management and Customer Status.md": {
+    "current_design": "Forces a per-counterparty :86: parsing configuration and the decision to normalise MT940 to camt.053 on ingest for a cleaner reconciliation schema.",
+    "elicit": "Ask which statements (MT940 to the owner versus MT950 bank-to-bank) feed nostro reconciliation, whether MT910 is used for real-time incoming-credit matching, and how the :86: narrative dialect differs per counterparty - reconciliation quality lives in that field."
+  },
+  "SWIFT-Vault/Payments End to End/MT Category n - Common Group Messages.md": {
+    "current_design": "Forces the decision to constrain free-format usage and to route cancellations through the structured camt.056/029 path during MT-MX coexistence.",
+    "elicit": "Ask how the firm handles free-format n99 (MT199/299/799/999) traffic - it is the unstructured workhorse that bypasses structured controls, so ask what gets sent in it and whether n92 cancellations are being migrated to camt.056."
+  },
+  "SWIFT-Vault/Payments End to End/MT940 and MT950 - Statement Messages.md": {
+    "current_design": "Forces a per-counterparty :86: parsing configuration and the strategic decision to normalise MT940 to camt.053 on ingest for a warehouse-friendly reconciliation schema.",
+    "elicit": "Ask each counterparty bank's :86: narrative dialect (SEPA codes, German question-tag and GVC, or free text) and whether statements are single- or multi-page - :86: has no global structure, so reconciliation breaks unless the per-bank convention is captured up front."
+  },
+  "SWIFT-Vault/Payments End to End/SWIFT SLA Models.md": {
+    "current_design": "Forces using SLA and Observer data as a routing input (pick correspondents on measured performance) and engineering cut-off and funding so inbound is credited same business day.",
+    "elicit": "Ask whether the firm meets the roughly 90 percent Observer adherence threshold and the Universal Confirmations baseline, and whether correspondent selection uses Observer-measured performance (speed, deducts, cut-offs) rather than reputation."
+  },
+  "SWIFT-Vault/Payments End to End/Swift Digital Asset Strategy.md": {
+    "current_design": "Forces treating the competing interoperability layers as parallel bets and reusing ISO 20022 and existing SWIFT connectivity as the lowest-friction on-ramp to tokenized value.",
+    "elicit": "Ask whether the firm tracks the SWIFT shared-ledger MVP as its lowest-friction on-ramp to tokenized cross-border value (no new counterparties, ISO 20022 reused) and how it treats SWIFT, the TCH tokenized-deposit network and BIS Agora as parallel interoperability bets - SWIFT is positioning as referee, not player."
+  },
+  "SWIFT-Vault/Payments End to End/TARGET Services - T2 TIPS T2S (Eurosystem).md": {
+    "current_design": "Forces designing euro treasury and ops around one liquidity pool across four services and version-bridging between TARGET MR2019 and CBPR+.",
+    "elicit": "Ask how the firm manages liquidity across the MCA/DCA structure (the CLM main cash account feeding RTGS, TIPS and T2S DCAs) for its euro operations, and whether it accounts for the TARGET MR2019 ISO version lag when bridging to CBPR+ - the platform pools liquidity but freezes message versions."
+  },
+  "SWIFT-Vault/Payments End to End/Truncation Risks.md": {
+    "current_design": "Forces data integrity as a first-class monitored control (truncation and concatenation detection tied to compliance sign-off) and upstream data cleansing so rich data exists to send.",
+    "elicit": "Ask where field-length boundaries exist across the chain (channels, core, translation, counterparties) and whether the firm alerts on truncation or silently absorbs it - screening on a post-truncation view produces false negatives and breaches the travel rule."
+  },
+  "SWIFT-Vault/Payments End to End/Volante Technologies (Payment Hub Vendor).md": {
+    "current_design": "Forces the cloud-native SaaS and low-code modernization choice (fast time-to-market) against the core-integration burden a payments-only specialist leaves to the firm.",
+    "elicit": "Ask whether the goal is cloud-native modernization and fast ISO and instant time-to-market without a core-banking tie-in, and how integration with the firm's existing core is handled - Volante is a payments specialist with no core suite, so core integration is on the firm."
+  },
+  "The-Architects-Codex/06-Data-Governance/DG Architecture Design and Implementation.md": {
+    "current_design": "Forces the decision to enforce governance technically.",
+    "elicit": "Ask 'how is governance enforced technically — catalog, lineage, quality, access — or left to manual discipline?' — automated enforcement is the unstated design."
+  },
+  "The-Architects-Codex/06-Data-Governance/DG Business Case and Value.md": {
+    "current_design": "Forces the decision to make the governance value case explicit.",
+    "elicit": "Ask 'what measurable value (risk reduction, efficiency, compliance) justifies governance investment, beyond \"good practice\"?' — the value case is the unstated requirement."
+  },
+  "The-Architects-Codex/06-Data-Governance/Data Governance Patterns for Financial Services.md": {
+    "current_design": "Forces the decision to implement FS-specific governance patterns.",
+    "elicit": "Ask 'which FS-specific governance patterns (BCBS 239, privacy, residency, retention) apply, and are they implemented?' — the FS-specific requirements are the unstated scope."
+  },
+  "The-Architects-Codex/08-Systems-Thinking/Leverage Points and Living in Systems.md": {
+    "current_design": "Forces the decision to intervene at high-leverage points.",
+    "elicit": "Ask 'are we intervening at a high-leverage point (rules, goals, paradigms) or a low-leverage one (parameters)?' — the leverage level is the unstated determinant of impact."
+  },
+  "The-Architects-Codex/10-Enterprise-Integration-Patterns/EIP-Pattern-Index-and-Gap-Analysis.md": {
+    "current_design": "Forces the decision to find and close integration-pattern gaps.",
+    "elicit": "Ask 'which integration patterns do our actual flows use, and where are we missing a needed pattern (e.g. dead-letter, idempotent receiver)?' — the pattern-gap is the unstated risk."
+  },
+  "The-Architects-Codex/10-Enterprise-Integration-Patterns/Integration-Anti-Patterns-and-Observability.md": {
+    "current_design": "Forces the decision to screen anti-patterns and require observability.",
+    "elicit": "Ask 'which integration anti-pattern is present — shared database, chatty sync calls, no dead-letter — and can we see the flow end to end?' — naming the anti-pattern and observability gap is the cheapest fix."
+  },
+  "The-Architects-Codex/11-SWIFT-and-Payment-Systems/CBPR-Plus-Compliance.md": {
+    "current_design": "Forces the decision to manage CBPR+ as a deadline-bound, data-fidelity-controlled change.",
+    "elicit": "Ask 'which CBPR+ requirements are mandatory by when, and how do we manage MT/MX coexistence and data fidelity through migration?' — coexistence and deadline risk are the unstated core."
+  },
+  "The-Architects-Codex/11-SWIFT-and-Payment-Systems/ISO-20022-and-MX-Message-Formats.md": {
+    "current_design": "Forces the decision to model ISO 20022 structure natively.",
+    "elicit": "Ask 'are we capturing ISO 20022's structured richness (LEI, purpose, structured remittance), or flattening to MT-equivalent?' — the data-richness-loss trap is the unstated risk."
+  },
+  "The-Architects-Codex/14-Financial-Regulatory-Compliance/OSFI-Model-Risk-Management.md": {
+    "current_design": "Forces the decision to bring models fully under E-23 governance.",
+    "elicit": "Ask 'is this model registered, tiered, independently validated, and monitored — or treated as a tool to skip governance?' — the not-a-model dodge is the unstated risk."
+  },
+  "The-Architects-Codex/14-Financial-Regulatory-Compliance/Payments-Canada-Modernisation.md": {
+    "current_design": "Forces the decision to align the roadmap to modernization deadlines.",
+    "elicit": "Ask 'which modernization obligations (LYNX, RTR, ISO 20022) apply by when, and is our roadmap aligned to the mandated timeline?' — the obligation-to-timeline alignment is the unstated requirement."
+  },
+  "The-Architects-Codex/14-Financial-Regulatory-Compliance/SOX-IT-General-Controls.md": {
+    "current_design": "Forces the decision to evidence operating ITGCs.",
+    "elicit": "Ask 'are ITGCs (access, change, operations) operating effectively with evidence, or documented but untested?' — the operating-effectiveness evidence is the unstated requirement."
+  },
+  "The-Architects-Codex/17-Architecture-and-DDD/ARB-Presentations-and-Architecture-Governance.md": {
+    "current_design": "Forces the decision to frame architecture submissions for governance.",
+    "elicit": "Ask 'does the ARB submission show the decision needed, options, trade-offs, and risks — or just the chosen design?' — the decision-framing for governance is the unstated requirement."
+  },
+  "The-Architects-Codex/18-Cryptography-and-PKI/Cryptography-Compliance-and-Standards.md": {
+    "current_design": "Forces the decision to inventory crypto against standards.",
+    "elicit": "Ask 'which crypto standards (FIPS 140, NIST) must we comply with, and is our inventory of crypto-in-use complete enough to prove it?' — the crypto inventory is the unstated gap."
+  },
+  "The-Architects-Codex/22-AI-ML-Integration-Patterns/AI-Security-Risks-and-Governance.md": {
+    "current_design": "Forces the decision to govern AI as a model with mapped threats.",
+    "elicit": "Ask 'is this AI registered and governed as a model under E-23, and which OWASP LLM/Agentic risks are in scope?' — the model-governance and threat-scoping are the unstated requirements."
+  },
+  "The-Architects-Codex/24-Post-Quantum-Cryptography/01-Quantum-Computing-Fundamentals.md": {
+    "current_design": "Forces the decision to treat the quantum threat as a present planning concern.",
+    "elicit": "Ask 'do stakeholders understand the quantum threat is harvest-now-decrypt-later, making today's long-lived data already at risk?' — the present-tense urgency is the unstated insight."
+  },
+  "The-Architects-Codex/24-Post-Quantum-Cryptography/02-Classical-Cryptography-Quantum-Impact.md": {
+    "current_design": "Forces the decision to assess crypto by quantum vulnerability.",
+    "elicit": "Ask 'which of our systems rely on RSA/ECC that quantum breaks, and which symmetric crypto only needs larger keys?' — the differential impact is the unstated assessment."
+  },
+  "The-Architects-Codex/24-Post-Quantum-Cryptography/04-Lattice-Math-Foundations.md": {
+    "current_design": "Forces the decision to understand PQC assumptions before adoption.",
+    "elicit": "Ask 'do we understand the hardness assumption underlying our chosen PQC scheme well enough to assess its risk?' — the assumption-risk understanding is the unstated due diligence."
+  },
+  "The-Architects-Codex/24-Post-Quantum-Cryptography/08-PQC-Migration-and-Crypto-Agility.md": {
+    "current_design": "Forces the decision to build crypto-agility for migration.",
+    "elicit": "Ask 'is our crypto abstracted so algorithms can be swapped without re-architecting — or is it hardcoded everywhere?' — crypto-agility is the unstated migration prerequisite."
+  },
+  "The-Architects-Codex/24-Post-Quantum-Cryptography/Glossary — Quantum Cryptanalysis (SME).md": {
+    "current_design": "Reference - SME vocabulary is the literacy that lets the BSA hold a credible line with cryptographers and security architects.",
+    "elicit": "Use these SME-level definitions (order-finding, multiplicative order, the factoring reduction) to discuss the quantum threat precisely with security and cryptography stakeholders, where loose terminology signals a non-expert."
+  },
+  "The-Architects-Codex/24-Post-Quantum-Cryptography/Grover's Algorithm and Amplitude Amplification — SME Deep Dive.md": {
+    "current_design": "Reference - knowing exactly why the symmetric threat is bounded is what authorizes the 'no PQC spend here' decision with confidence.",
+    "elicit": "When someone says 'Grover halves key strength so double everything', be ready to give the precise, less-alarming truth - the optimality bound and MAXDEPTH reality cap the threat, so AES-256 (and largely AES-128) stay safe with resizing, not migration."
+  },
+  "The-Architects-Codex/24-Post-Quantum-Cryptography/Shor's Algorithm — SME Deep Dive.md": {
+    "current_design": "Reference - the SME-level mechanism is what lets the BSA defend the threat model and resist both alarmism and dismissal in governance discussions.",
+    "elicit": "When challenged on why PQC is needed, be ready to explain that Shor reduces factoring and discrete-log to order-finding via phase estimation - and that the discrete-log variant is what actually breaks ECC - because a precise mechanism, not 'Shor factors fast', is the credibility marker."
+  },
+  "The-Architects-Codex/24-Post-Quantum-Cryptography/Why Lattice Cryptography Resists Quantum.md": {
+    "current_design": "Reference - this closes the threat-to-defense loop at a level the BSA can defend, including the limits of the assurance.",
+    "elicit": "Be ready for the executive question 'if quantum breaks RSA, why not the new algorithms too?' - the precise answer is structural: Shor's power is the abelian hidden-subgroup problem, and lattice problems are not known to reduce to it (with the honest caveat that 'not known broken' is not 'proven secure')."
+  },
+  "The-Architects-Codex/25-FinTech-Domain-Knowledge/03-ISO-20022-and-SWIFT-Mastery.md": {
+    "current_design": "Forces the decision to model ISO 20022 structure natively.",
+    "elicit": "Ask 'are we preserving ISO 20022 structured richness end to end, or flattening to MT-equivalent?' — the data-richness-loss trap is the unstated risk."
+  },
+  "The-Architects-Codex/26-NIST-Security-Controls/NIST-AI-100-1-AI-RMF.md": {
+    "current_design": "Forces the decision to integrate AI RMF into existing governance.",
+    "elicit": "Ask 'which AI RMF function is weakest for our AI, and where do existing controls already satisfy it?' — the coverage mapping is skipped."
+  },
+  "The-Architects-Codex/26-NIST-Security-Controls/NIST-RMF-and-800-53-Overview.md": {
+    "current_design": "Forces the decision to integrate 800-53 into existing control coverage.",
+    "elicit": "Ask 'which 800-53 control families apply at our baseline, and do we map them to existing bank controls or run a parallel set?' — the mapping-versus-parallel choice is the unstated decision."
+  },
+  "The-Architects-Codex/26-NIST-Security-Controls/PM-PS-PL-AT-MA-MP-PT.md": {
+    "current_design": "Forces the decision to operate the program/personnel control families.",
+    "elicit": "Ask 'are the program-management, personnel, planning, training, and media controls operating, or treated as paperwork?' — the operating reality of these families is the unstated gap."
+  },
+  "The-Architects-Codex/26-NIST-Security-Controls/SP-800-37-PREPARE-Step.md": {
+    "current_design": "Forces the decision to prepare before selecting controls.",
+    "elicit": "Ask 'have we established context, roles, and risk tolerance before selecting controls, or jumped straight to controls?' — the prepare step is the skipped foundation."
+  },
+  "The-Architects-Codex/26-NIST-Security-Controls/SP-800-37-Privacy-CSF-SDLC-Alignment.md": {
+    "current_design": "Forces the decision to integrate privacy/CSF into the SDLC.",
+    "elicit": "Ask 'are privacy controls and the CSF integrated into the SDLC, or bolted on at the end?' — the integration timing is the unstated requirement."
+  },
+  "The-Architects-Codex/26-NIST-Security-Controls/SP-800-37-RMF-Overview.md": {
+    "current_design": "Forces the decision to complete the RMF lifecycle.",
+    "elicit": "Ask 'are we executing the full RMF, or stopping at control implementation without authorization and monitoring?' — the authorize/monitor steps are the often-skipped ones."
+  },
+  "The-Architects-Codex/27-Security-Architecture-and-Operations/GRC-Risk-Management-and-Security-Governance.md": {
+    "current_design": "Forces the decision to operationalize GRC for governance.",
+    "elicit": "Ask 'does GRC connect risk, control, and compliance into decisions, or just store records?' — the decision-driving versus record-keeping distinction is the unstated value."
+  },
+  "The-Architects-Codex/27-Security-Architecture-and-Operations/Security-Architecture-Design-Principles.md": {
+    "current_design": "Forces the decision to embed security principles by design.",
+    "elicit": "Ask 'are security principles (least privilege, defence in depth, fail secure, minimize attack surface) applied by design, or bolted on?' — by-design application is the unstated discipline."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/01-Domains/Domain 1 - Security and Risk Management.md": {
+    "current_design": "Forces the design decision of the governance operating model and risk-appetite framework that every downstream control inherits.",
+    "elicit": "Ask where accountability for security risk sits and whether risk is managed as a continuous, governed process - Domain 1 (the highest-weighted) is governance and risk, and accountability gaps here cascade into every other domain."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/01-Domains/Domain 2 - Asset Security.md": {
+    "current_design": "Forces the design decision of how classification drives technical controls and how retention floors reconcile with erasure rights.",
+    "elicit": "Ask how data is classified, handled, retained, and destroyed across its lifecycle - Domain 2 is mostly definitional but the retention-versus-erasure and residency questions carry real regulatory teeth."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/01-Domains/Domain 4 - Communication and Network Security.md": {
+    "current_design": "Forces the design decisions of segmentation granularity and channel encryption, with the SWIFT secure zone as a specific control target.",
+    "elicit": "Ask how the network is segmented and which channels carry sensitive payment traffic - Domain 4's concepts are exercised daily in a wires estate, and segmentation of sensitive zones is the high-stakes control."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/01-Domains/Domain 8 - Software Development Security.md": {
+    "current_design": "Forces the design decisions of where security gates sit in delivery and how requirements encode security from the outset.",
+    "elicit": "Ask how security is embedded across the SDLC and where the BA's requirements phase sets the security baseline - Domain 8's highest-leverage point is requirements, where the BA shapes the controls that follow."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/02-Core-Concepts/CIA Triad and Core Security Concepts.md": {
+    "current_design": "Forces the foundational design decision of which security property to optimize for, since controls that maximize one property can cost another.",
+    "elicit": "Ask which of confidentiality, integrity, and availability dominates for each asset - the priority differs (a payment ledger weights integrity; customer data weights confidentiality) and drives every control choice."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/02-Core-Concepts/Cryptanalysis and Attacks on Cryptography.md": {
+    "current_design": "Forces the design decision of algorithm selection and crypto-agility, so deprecated or future-broken algorithms can be replaced without re-architecture.",
+    "elicit": "Ask what cryptographic algorithms and key lengths are in use and whether any are deprecated or quantum-exposed - because weak or aging crypto is a silent exposure until it is exploited."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/02-Core-Concepts/Maturity Models — CMMI and OWASP SAMM.md": {
+    "current_design": "Forces the design decision of how much maturity to invest in and in which practices first, prioritized by risk.",
+    "elicit": "Ask what the target maturity is for the security/software program and where it sits today - because improvement without a maturity baseline is unmeasurable, and stakeholders often lack a current-state assessment."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/02-Core-Concepts/Network Devices and Access Control.md": {
+    "current_design": "Forces the design decision of where to enforce network access control and how to protect device management, balancing operability against exposure.",
+    "elicit": "Ask how network devices enforce access (NAC, ACLs, port security) and how the devices themselves are hardened and managed - the management plane of network devices is a frequently-overlooked attack surface."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/02-Core-Concepts/Risk Management Process and ISRM.md": {
+    "current_design": "Forces the design decision of how risk is continuously tracked and re-assessed as the environment changes.",
+    "elicit": "Ask whether risk is managed as a continuous process (identify, assess, respond, monitor) with clear ownership, or treated as a one-time exercise - the monitoring and ownership steps are commonly missing."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/02-Core-Concepts/Risk Response and Control Selection.md": {
+    "current_design": "Forces the design decision of response strategy and cost-effective control selection, with explicit accountability for accepted risk.",
+    "elicit": "Ask, for each material risk, which response is chosen (mitigate, transfer, avoid, accept) and who formally accepts residual risk - unsigned risk acceptance is a recurring accountability gap."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/02-Core-Concepts/Risk and Security Program Frameworks.md": {
+    "current_design": "Forces the design decision of framework selection and how regulatory expectations are traced onto it.",
+    "elicit": "Ask which framework the security program is built on (NIST CSF, ISO 27001, COBIT) and how its controls map to the bank's regulatory obligations - an unframed program cannot be assessed for completeness."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/02-Core-Concepts/Security Governance, Roles and Accountability.md": {
+    "current_design": "Forces the design decision of the governance operating model and how accountability is assigned and evidenced.",
+    "elicit": "Ask who is accountable (not merely responsible) for each security outcome and whether roles like data owner, custodian, and steward are assigned - accountability gaps surface only when something fails."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/02-Core-Concepts/Site and Facility Security — CPTED, Power and Fire.md": {
+    "current_design": "Forces the design decision of facility resilience investment and redundancy for critical infrastructure.",
+    "elicit": "Ask what environmental and physical resilience the facility provides (power, cooling, fire suppression) and whether single points of failure exist - environmental failures cause outages independent of any cyber event."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/02-Core-Concepts/The SDLC and Security in Every Phase.md": {
+    "current_design": "Forces the design decision of where security gates sit and how early they shift, trading delivery speed against defect cost.",
+    "elicit": "Ask at which SDLC phases security activities actually occur - because security concentrated only at testing (or after release) is the pattern that ships vulnerabilities; it must appear from requirements onward."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/02-Core-Concepts/Web, DNS and Email Security.md": {
+    "current_design": "Forces the design decision of which channel protections to prioritize given that web/DNS/email are the dominant attack entry points.",
+    "elicit": "Ask how web, DNS, and email - the most-targeted channels - are protected against the attacks that ride them (phishing, spoofing, DNS hijack), because these are the leading initial-access vectors."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/05-CIBC-Context/D1 — Payments Security Lens.md": {
+    "current_design": "Forces the design decision of how governance and risk-appetite apply specifically to high-value payment flows.",
+    "elicit": "Ask how each governance and risk concept maps to the wires/ACE/CBPR+ environment before building the risk register - the abstract Domain 1 concepts become concrete only against the real payments estate."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/05-CIBC-Context/D2 — Payments Data Lens.md": {
+    "current_design": "Forces the design decision of classification-driven controls and lawful disposal across operational and analytics data stores.",
+    "elicit": "Ask how payment data across the estate (including the analytics platform) is classified, retained, and disposed of - the asset-security program already exists operationally and must be made explicit and compliant."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/05-CIBC-Context/D3 — Payments Architecture Lens.md": {
+    "current_design": "Forces the design decision of how cryptographic and architectural controls are engineered into the payment platform, with a quantum-safe path.",
+    "elicit": "Ask how the engineered wires estate realizes secure-architecture and cryptographic concepts - the production PKI and key management are the strongest concrete anchor for Domain 3."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/05-CIBC-Context/D4 — Payments Network Lens.md": {
+    "current_design": "Forces the design decision of how segmentation and channel encryption are realized for payment traffic and the SWIFT secure zone.",
+    "elicit": "Ask how the network the wires actually ride exercises the Domain 4 concepts - the estate uses nearly every network-security concept daily, so abstractions should be anchored to real segments and channels."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/05-CIBC-Context/D5 — Payments Identity Lens.md": {
+    "current_design": "Forces the design decision of the authorization model and separation of duties across the payment lifecycle.",
+    "elicit": "Ask how identity and authorization operate under maximum stakes - every wire is an authorization decision, so Domain 5 concepts map directly onto who can initiate, approve, and release payments."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/05-CIBC-Context/D6 — Payments Assurance Lens.md": {
+    "current_design": "Forces the design decision of assurance cadence and independence for payment controls.",
+    "elicit": "Ask how assurance and testing concepts map to the payments control environment - the assurance methodology (audit, metrics) is a strong anchor, and the SWIFT CSP cycle is the recurring independent assessment."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/05-CIBC-Context/D8 — Payments Software Lens.md": {
+    "current_design": "Forces the design decision of how security requirements and pipeline gates are embedded in payment-software delivery.",
+    "elicit": "Ask how the requirements phase sets the security baseline for payment software - the BA sits at the domain's highest-leverage point, where security requirements are defined before code exists."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/06-Work-Scenarios/Scenario 1 — Wire Fraud Risk Assessment for ACE.md": {
+    "current_design": "Forces the design decision of which fraud controls to invest in, justified by the assessed risk to the payment environment.",
+    "elicit": "Ask what wire-fraud scenarios threaten the payment-processing environment and what each would cost and how likely it is - a structured assessment surfaces fraud paths stakeholders treat as edge cases."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/06-Work-Scenarios/Scenario 4 — SWIFT CSP Independent Assessment.md": {
+    "current_design": "Forces the design decision of how SWIFT-connectivity controls are evidenced and independently assessed each cycle.",
+    "elicit": "Ask which SWIFT CSP controls are in scope, what evidence exists, and where the independent assessment will find gaps - the annual cycle requires evidenced control effectiveness, not assertions."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/06-Work-Scenarios/Scenario 6 — Designing Access for the New Payment Repair Team.md": {
+    "current_design": "Forces the design decision of the role and entitlement model that enables repair work without granting toxic combinations.",
+    "elicit": "Ask exactly what the repair team must do, and the minimum access that enables it without breaking separation of duties - access for a new operational team is where over-provisioning and SoD violations creep in."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/06-Work-Scenarios/Scenario 7 — Segmenting the SWIFT Secure Zone.md": {
+    "current_design": "Forces the design decision of segmentation enforcement and the allowed crossings into the SWIFT secure zone.",
+    "elicit": "Ask where the SWIFT secure-zone boundary sits, what crosses it, and whether segmentation is enforced and tested - SWIFT CSP mandates secure-zone isolation, and unexamined flows across the boundary are the exposure."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/06-Work-Scenarios/Scenario 9 — Securing the Triage Agent's Delivery Pipeline.md": {
+    "current_design": "Forces the design decision of pipeline security controls for a system that influences payment-exception handling.",
+    "elicit": "Ask how the triage agent's delivery pipeline is secured end to end - source, build, dependencies, secrets, and deployment - because an AI-in-the-loop payment tool's pipeline is itself a high-value attack surface."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/D1-Security-and-Risk-Management.md": {
+    "current_design": "Forces the decision to ground security in governance and risk.",
+    "elicit": "Ask 'is security grounded in governance, risk, and compliance with clear accountability, or treated as a purely technical concern?' — the governance grounding is the unstated foundation."
+  },
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/D3-Security-Architecture-and-Engineering.md": {
+    "current_design": "Forces the decision to engineer security by design.",
+    "elicit": "Ask 'are security principles engineered into the architecture, or assessed after the design is fixed?' — by-design engineering is the unstated discipline."
+  },
+  "The-Architects-Codex/29-SC100-Cybersecurity-Architect/06 Exam Traps and Service-Boundary Comparisons.md": {
+    "current_design": "Forces the service-boundary design decisions that determine whether the architecture is coherent or has overlapping, gap-leaving tools.",
+    "elicit": "Ask precisely which capability a requirement needs before naming a service - because the common errors (Sentinel versus Defender XDR, Purview versus Azure Policy, Secure Score versus Exposure Management) come from conflating overlapping services."
+  },
+  "The-Architects-Codex/29-SC100-Cybersecurity-Architect/07 Scenario Drill Bank.md": {
+    "current_design": "Forces practice in reasoning to a justified recommendation under constraints, which is the transferable skill behind real design calls.",
+    "elicit": "Ask what the scenario's real drivers are (compliance, resilience, cost, time) before recommending - because the same Azure security question has different right answers depending on the constraint that dominates."
+  },
+  "The-Architects-Codex/29-SC100-Cybersecurity-Architect/08 Glossary — SC-100.md": {
+    "current_design": "Reference - shared precise vocabulary is the literacy that keeps security architecture decisions coherent.",
+    "elicit": "Use these definitions to pin down Azure security terms precisely - imprecise use of Zero Trust, posture, XDR, or CIEM is a common source of misaligned security requirements."
+  },
+  "The-Architects-Codex/29-SC100-Cybersecurity-Architect/09 Flashcards — Service Boundaries and Decisions.md": {
+    "current_design": "Reference - fluency in the service-boundary decisions is what lets a BSA/architect map a requirement to the right Azure service without re-deriving it.",
+    "elicit": "Use these recall prompts to internalize the testable service-boundary decisions, so the correct choice (which tool for which job) is immediate when a real requirement appears."
+  },
+  "The-Architects-Codex/29-SC100-Cybersecurity-Architect/SC-100-Microsoft-Cybersecurity-Architect.md": {
+    "current_design": "Forces the cross-domain design decisions that hold the security architecture together - the same service-boundary and Zero Trust choices the individual domains raise, integrated into one coherent posture.",
+    "elicit": "Ask, across the whole Azure security architecture, where the bank's Zero Trust maturity is weakest - identity, endpoint, network, data, or SecOps - because the SC-100 scope is the full estate and the weakest pillar is where risk concentrates."
+  },
+  "The-Architects-Codex/29-SC100-Cybersecurity-Architect/_archive-original-notes/SC-100-Microsoft-Cybersecurity-Architect.md": {
+    "current_design": "Forces the cross-domain design decisions that hold the security architecture together - the same service-boundary and Zero Trust choices the individual domains raise, integrated into one coherent posture.",
+    "elicit": "Ask, across the whole Azure security architecture, where the bank's Zero Trust maturity is weakest - identity, endpoint, network, data, or SecOps - because the SC-100 scope is the full estate and the weakest pillar is where risk concentrates."
+  },
+  "The-Architects-Codex/32-PQC-Payments-Migration/02-Cryptographic-Inventory/TLS, mTLS and Channel Encryption Dependencies.md": {
+    "current_design": "Forces the design decision to begin migration at key exchange (hybrid ML-KEM in TLS) - the highest-leverage move - and to plan for hybrid handshakes during transition.",
+    "elicit": "Ask which channels (every API call, internal service link, mTLS handshake, IPsec tunnel) establish session keys with asymmetric crypto - because this transport layer is the highest-volume and highest-priority quantum exposure and the prime HNDL target."
+  },
+  "The-Architects-Codex/32-PQC-Payments-Migration/02-Cryptographic-Inventory/Where Cryptography Lives in a Payments Estate.md": {
+    "current_design": "Forces the first design decision of any PQC program - build the CBOM before anything else - because inventory completeness bounds migration completeness.",
+    "elicit": "Ask where cryptography actually lives across the estate - protocols, libraries, certificates, firmware, HSMs, hardcoded constants - because you cannot migrate, prioritize, or budget for what you have not inventoried, and missed dependencies leave quantum-vulnerable paths open."
+  },
+  "The-Architects-Codex/32-PQC-Payments-Migration/05-Reference/Glossary — PQC and Quantum-Safe Migration.md": {
+    "current_design": "Reference - shared precise vocabulary is what lets the BSA challenge vendor and internal claims and map them to the correct migration action.",
+    "elicit": "Use these definitions to keep PQC discussions precise - conflating Shor (breaks asymmetric) with Grover (only weakens symmetric), or 'quantum-safe' with 'quantum-resistant', is the most common source of over- or under-stated risk."
+  },
+  "The-Architects-Codex/33-PQC-Technology-Deep-Dives/Building a CBOM — Methodology.md": {
+    "current_design": "Forces the design decision to treat the CBOM as a living operational artifact with named owners and a prioritization rule, since it is the spine the entire migration is sequenced from.",
+    "elicit": "Ask who owns each cryptographic asset and what data feeds the CBOM - because a real CBOM is built from confidential internal estate data, and its completeness and ownership determine whether migration can even be prioritized."
+  },
+  "The-Architects-Codex/33-PQC-Technology-Deep-Dives/Symmetric Cryptography and Hashing — Deep Dive.md": {
+    "current_design": "Forces the design decision to exclude symmetric/hash from PQC migration and instead verify key/digest sizes, freeing budget for the asymmetric break.",
+    "elicit": "Ask which assets are protected by symmetric crypto and hashing (AES-256, SHA-2/3) versus asymmetric - because these are the 'what survives' layer needing only adequate key/digest sizes, and PQC budget should not be spent migrating them."
+  },
+  "The-Architects-Codex/34-Quantum-and-PQC-SME-Notes/PQC-Technology-Deep-Dives/Symmetric Cryptography and Hashing — Deep Dive.md": {
+    "current_design": "Forces the design decision to exclude symmetric/hash from PQC migration and instead verify key/digest sizes, freeing budget for the asymmetric break.",
+    "elicit": "Ask which assets are protected by symmetric crypto and hashing (AES-256, SHA-2/3) versus asymmetric - because these are the 'what survives' layer needing only adequate key/digest sizes, and PQC budget should not be spent migrating them."
+  },
+  "The-Architects-Codex/34-Quantum-and-PQC-SME-Notes/Quantum-SME-Deep-Dives/Glossary — Quantum Cryptanalysis (SME).md": {
+    "current_design": "Reference - SME vocabulary is the literacy that lets the BSA hold a credible line with cryptographers and security architects.",
+    "elicit": "Use these SME-level definitions (order-finding, multiplicative order, the factoring reduction) to discuss the quantum threat precisely with security and cryptography stakeholders, where loose terminology signals a non-expert."
+  },
+  "The-Architects-Codex/34-Quantum-and-PQC-SME-Notes/Quantum-SME-Deep-Dives/Grover's Algorithm and Amplitude Amplification — SME Deep Dive.md": {
+    "current_design": "Reference - knowing exactly why the symmetric threat is bounded is what authorizes the 'no PQC spend here' decision with confidence.",
+    "elicit": "When someone says 'Grover halves key strength so double everything', be ready to give the precise, less-alarming truth - the optimality bound and MAXDEPTH reality cap the threat, so AES-256 (and largely AES-128) stay safe with resizing, not migration."
+  },
+  "The-Architects-Codex/34-Quantum-and-PQC-SME-Notes/Quantum-SME-Deep-Dives/Shor's Algorithm — SME Deep Dive.md": {
+    "current_design": "Reference - the SME-level mechanism is what lets the BSA defend the threat model and resist both alarmism and dismissal in governance discussions.",
+    "elicit": "When challenged on why PQC is needed, be ready to explain that Shor reduces factoring and discrete-log to order-finding via phase estimation - and that the discrete-log variant is what actually breaks ECC - because a precise mechanism, not 'Shor factors fast', is the credibility marker."
+  },
+  "The-Architects-Codex/34-Quantum-and-PQC-SME-Notes/Quantum-SME-Deep-Dives/Why Lattice Cryptography Resists Quantum.md": {
+    "current_design": "Reference - this closes the threat-to-defense loop at a level the BSA can defend, including the limits of the assurance.",
+    "elicit": "Be ready for the executive question 'if quantum breaks RSA, why not the new algorithms too?' - the precise answer is structural: Shor's power is the abelian hidden-subgroup problem, and lattice problems are not known to reduce to it (with the honest caveat that 'not known broken' is not 'proven secure')."
+  },
+  "The-Architects-Codex/Homelab_Master_Plan_v8.3.md": {
+    "current_design": "Forces the decision to distinguish transferable practice from lab convenience.",
+    "elicit": "Ask 'which homelab practices transfer to enterprise discipline, and where do they intentionally diverge from production rigour?' — the transfer-versus-divergence boundary is the unstated reflection."
+  }
+}
