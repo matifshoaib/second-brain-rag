@@ -1,0 +1,57 @@
+{
+  "AWS-Well-Architected/07-WA-Review-Process/WAR-AWS-WA-Tool.md": "Forces the decision on whether tool output is a living evidence record with tracked remediation, or a point-in-time report nobody revisits, and who owns the follow-up.",
+
+  "AWS-Well-Architected/07-WA-Review-Process/WAR-Financial-Services-Lens.md": "Forces the decision on which FS-Lens controls map to specific OSFI and PCI obligations, and where a residual gap needs a compensating control rather than a note.",
+
+  "AWS-Well-Architected/07-WA-Review-Process/WAR-Overview.md": "Forces the choice between running the review early enough to change the design and running it as a pre-go-live rubber stamp, and who can still say no at that point.",
+
+  "AWS-Well-Architected/08-Cross-Pillar/AWS-Services-Mapped-To-Pillars.md": "Forces the decision on which services are justified by a named pillar outcome and which were adopted without rationale, and what evidence retires the latter.",
+
+  "AWS-Well-Architected/08-Cross-Pillar/Enterprise-Governance-Mapping.md": "Forces the decision on whether review output feeds enterprise architecture and risk processes or sits in a silo, and who is accountable for the handoff.",
+
+  "AWS-Well-Architected/08-Cross-Pillar/Framework-In-Financial-Services.md": "Forces the decision on which framework practices are mandatory in the regulated context, which are adapted, and who approves each deviation.",
+
+  "AWS-Well-Architected/09-Learning-Path.md": "Forces the decision on which pillars the team builds capability in first, based on assessed gaps rather than interest, and what evidence closes a gap.",
+
+  "Azure Architect Vault/01-Well-Architected-Framework/Pillar 2 — Security.md": "Forces the decision on data classification per workload and whether the security posture scales to the most sensitive field present or to the modal one.",
+
+  "Azure Architect Vault/01-Well-Architected-Framework/Pillar 4 — Operational Excellence.md": "Forces the decision on which health signals define workload health, and whether operational improvement is a funded loop or an aspiration between incidents.",
+
+  "Azure Architect Vault/03-Architecture-Patterns/Cloud Adoption Framework (CAF).md": "Forces the choice between establishing governance before workloads land and retrofitting it afterward, and who bears the remediation cost of the second path.",
+
+  "Azure Architect Vault/06-Banking-Real-World/Azure in Banking — OSFI B-13 and Compliance.md": "Forces the decision on which B-13 expectations each Azure capability satisfies, and where a residual gap is closed by a compensating control versus accepted.",
+
+  "Azure Architect Vault/06-Banking-Real-World/Financial Services Landing Zone.md": "Forces the decision on which guardrails -- data residency, segregation, OSFI and PCI controls -- are enforced by policy at landing versus checked at review.",
+
+  "Azure Architect Vault/06-Banking-Real-World/Real-World Azure Failures and Lessons.md": "Forces the decision on which documented failure modes this architecture shares, and which are controlled versus knowingly carried.",
+
+  "CBAP Knowledge Vault/03-Techniques/Risk Analysis and Management.md": "Forces the decision on which initiative risks carry a named owner and response, and which are logged without one and therefore unmanaged.",
+
+  "CBAP Knowledge Vault/05-Work-Scenarios/Alfalah-01 — T24 Forward Booking and Regulatory Automation.md": "Forces the decision on which regulatory rules the automation enforces, and what evidence proves each is correctly implemented rather than merely coded.",
+
+  "CRISC Knowledge Vault/01-Domains/Domain 2 - IT Risk Assessment.md": "Forces the choice between structured scenarios naming actor, event, vulnerability and impact, and vague concerns that cannot be assessed or tracked.",
+
+  "CRISC Knowledge Vault/01-Domains/Domain 4 - IT and Security.md": "Forces the decision on which technical controls address each assessed risk, and whether effectiveness is tested or assumed from configuration.",
+
+  "CRISC Knowledge Vault/02-Core-Concepts/Enterprise Architecture and Maturity Models.md": "Forces the decision on the honest current maturity baseline and a realistic target, and what investment the gap between them actually requires.",
+
+  "CRISC Knowledge Vault/02-Core-Concepts/Inherent and Residual Risk.md": "Forces the decision on whether risk is measured before and after controls, and what happens when residual exceeds tolerance -- treat, transfer, or formally accept.",
+
+  "CRISC Knowledge Vault/02-Core-Concepts/Risk Appetite, Tolerance and Capacity.md": "Forces the decision on which limits carry the appetite operationally, and whether a breach halts activity or only escalates for review.",
+
+  "CRISC Knowledge Vault/02-Core-Concepts/Risk Profile.md": "Forces the choice between an aggregated profile leadership acts on and a risk list nobody reads, and who owns the aggregation method.",
+
+  "CRISC Knowledge Vault/02-Core-Concepts/Risk Scenario Development.md": "Forces the decision on scenario granularity -- how many named scenarios versus one broad concern -- and what makes each independently assessable.",
+
+  "CRISC Knowledge Vault/02-Core-Concepts/Vulnerability and Control Analysis.md": "Forces the decision on which vulnerabilities have a control that demonstrably mitigates them, versus one that exists nominally and has never been tested.",
+
+  "CRISC Knowledge Vault/03-Frameworks/Control Frameworks.md": "Forces the choice between one integrated control set mapped across frameworks and several parallel sets, and who reconciles them when they conflict.",
+
+  "CRISC Knowledge Vault/03-Frameworks/ISACA Risk IT Framework.md": "Forces the decision on whether IT risk runs as a closed loop through govern, evaluate and respond, or stops at assessment with no response gate.",
+
+  "CRISC Knowledge Vault/03-Frameworks/NIST Risk Management Framework (RMF).md": "Forces the decision on whether the lifecycle completes through authorization and continuous monitoring, or stops at implementation with no accountable authorizer.",
+
+  "CRISC Knowledge Vault/04-Techniques/Control Design Worksheet.md": "Forces the decision on control objective, owner, test method, and what evidence counts as effectiveness -- before the control is built rather than at audit.",
+
+  "CRISC Knowledge Vault/04-Techniques/Risk Acceptance Letter.md": "Forces the decision on who holds authority to accept residual risk at each level, and whether acceptance carries a review date or runs indefinitely."
+}
