@@ -1,144 +1,269 @@
-# Second Brain
+<div align="center">
 
-**A local-first, faithfulness-gated RAG system over a 1100-note Business Systems Analyst knowledge vault.**
+# Second Brain RAG
 
-> The AI is not the ceiling. The notes are.
+**A local-first retrieval-augmented generation system over a 1,348-note knowledge vault.**
 
-This repository contains the **engine** — the retrieval, generation, and evaluation code. The knowledge vault it runs over (1100 hand-authored notes, ~452,643 lines, ~2.8M words across 15 sub-vaults) stays private by design. The code is public; the knowledge is not. That separation is the point: this is a system for making *your own* expert knowledge queryable, privately, on your own hardware.
+Answers working questions from my own notes — not from training data — with every claim traceable to the note it came from.
+
+![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![ChromaDB](https://img.shields.io/badge/ChromaDB-FF6B35)
+![Ollama](https://img.shields.io/badge/Ollama-local--first-000000)
+![Top-1](https://img.shields.io/badge/Top--1-76%25-2ea44f)
+![Chunks](https://img.shields.io/badge/chunks-42%2C587-5B21B6)
+
+</div>
 
 ---
 
-## What this is
+## What it is
 
-A Retrieval-Augmented Generation system built specifically to answer one kind of question well: not *"what is X"*, but *"how does a Business Systems Analyst at a regulated bank actually act on X"*.
+An Obsidian vault of 1,348 interlinked notes — payments architecture, ISO 20022 and SWIFT,
+financial-crime compliance, information security standards, cloud and platform engineering —
+made queryable in natural language, with retrieval quality measured rather than assumed.
 
-It runs locally. The corpus and vector index never leave the machine. Generation is provider-swappable per query — a local model by default (unlimited, private), with a hosted model available on demand for deeper breadth. When the local notes don't cover something, the system says so rather than fabricating.
-
-## The problem it solves
-
-A deep personal knowledge vault is excellent at *what is X* and useless at *how do I act on X*. The operational layer a practitioner actually uses — what to ask stakeholders, what requirement something becomes, what design decision it forces, which regulatory expectation it engages — lives only in their head and gets re-derived from scratch every time.
-
-This system closes that gap with two layers:
-
-1. **A four-field "how-layer" ontology** authored into every note.
-2. **A faithfulness-gated RAG system** designed to retrieve and reason over it.
-
-## The how-layer ontology
-
-Every note carries a fixed four-field execution block, authored against its real content:
-
-| Field | What it answers |
+| | |
 |---|---|
-| **Elicit** | What to ask stakeholders that they won't volunteer |
-| **Specify** | What concrete requirement, control, or acceptance criterion this becomes |
-| **Design** | What design decision or trade-off this forces |
-| **Regulatory Hook** | Which specific supervisory expectation it engages |
+| **Notes indexed** | 1,348 across 18 topic vaults |
+| **Chunks** | 42,587 — 41,240 content, 1,347 practitioner-layer |
+| **Link graph** | 7,648 wikilink edges, traversed at query time |
+| **Retrieval** | 76% Top-1 · 86% Top-K on a fixed 21-query evaluation set |
+| **Median chunk** | 183 tokens · 85% within the 80–1,000 target band |
+| **Default generation** | Local. Nothing leaves the machine unless explicitly selected. |
 
-Stored two ways: a human-readable callout for reading, and a YAML frontmatter mirror for machine retrieval. This is what turns passive reference into active, retrievable guidance.
+---
+
+## Why build it
+
+General assistants answer from training data. When the question is *"what does my note say
+about the LYNX cut-off buffer,"* training data is the wrong source and confident invention is
+the failure mode.
+
+This system answers **only** from retrieved notes. It refuses when retrieval quality falls
+below threshold, shows the source chunk behind every claim, scores its own faithfulness to
+those sources, and explicitly names what the vault does **not** cover rather than filling the
+gap from the model's own knowledge.
+
+A second constraint shaped every design decision: the vault holds professional material.
+Generation runs locally by default, and the cloud model is opt-in per query.
+
+---
 
 ## Architecture
 
 ```
-Vault (hand-authored notes)
-   │  stamp_apply.py      — idempotent four-field injection
-   ▼
-Stamped vault copy
-   │  chunker_v2.py       — frontmatter-aware, typed how-layer chunks, force-cut fallback
-   ▼
-chunks.jsonl
-   │  embed_index.py      — Ollama (mxbai-embed-large) → ChromaDB
-   ▼
-ChromaDB vector index
-   │  retrieval.py        — semantic search + know-vs-do routing + graph-hop + refusal gate
-   ▼
-generate.py              — exhaustive synthesis + 11 analytical dimensions
-   │                        (provider-swappable: local Ollama / hosted Gemini)
-   │  research.py         — OPTIONAL: explicit, tagged external web research for gaps
-   ▼
-app.py (FastAPI)  →  ui/index.html (browser)
+Obsidian vault
+      │
+      ▼
+ stamp_apply.py     inject the practitioner layer into a working copy
+      │
+      ▼
+ chunker_v2.py      structure-aware chunking, typed chunks   ->  chunks.jsonl
+      │
+      ▼
+ embed_index.py     Ollama embeddings, 1024-dim              ->  ChromaDB
+      │
+      ▼
+ retrieval.py       semantic -> refusal gate -> BM25 -> RRF -> rerank -> graph-hop
+      │
+      ▼
+ generate.py        local or cloud synthesis, faithfulness scoring, gap detection
+      │
+      ▼
+ app.py             FastAPI service + static UI
 ```
 
-## Three properties most RAG systems don't have
+### The retrieval pipeline
 
-1. **Faithfulness gate.** Below a similarity threshold, the system refuses to answer rather than fabricate. A confident wrong answer is worse than no answer for regulated work.
+Retrieval decides whether the system is useful, so it carries the most machinery.
 
-2. **Measured retrieval.** 67% Top-1 / 81% Top-K across a 21-question evaluation spanning all 15 sub-vaults. The eval harness re-runs after any change, so improvements are measured, not assumed.
+**1 · Semantic search.** Cosine similarity over ChromaDB returns a candidate pool.
 
-3. **Tagged external research.** When local notes have gaps, an opt-in mode runs hosted generation with web-search grounding. Results land in a visually distinct, clearly-tagged panel — never blended with local-grounded content. Provenance never collapses.
+**2 · Refusal gate.** If the best *semantic* similarity falls below threshold, the system
+returns nothing. Keyword hits never rescue a chunk the embedding rejected. An empty answer is
+better than a confident wrong one.
+
+**3 · BM25 keyword search.** An in-memory lexical index over the same chunks. Exact technical
+tokens — `CBPR+`, `pacs.008`, `IPPROCS`, `SDN` — are precisely what dense embeddings blur.
+
+**4 · Reciprocal Rank Fusion.** Merges the semantic and lexical rankings into one ordering.
+
+**5 · Cross-encoder rerank.** `BAAI/bge-reranker-base` reorders the fused pool with full
+query–document attention.
+
+**6 · Know-vs-do routing.** A query classifier detects *how do I*, *what goes wrong when*, and
+*how do I verify* phrasing, boosting the practitioner layer for those questions only — so
+procedural queries surface applied guidance while conceptual queries surface explanation.
+
+**7 · Graph-hop.** Follows wikilinks outward from the top hits to pull adjacent context the
+embedding alone would miss. It is why a sanctions question can reach an ISO 20022 note.
+
+### The practitioner layer
+
+Every note carries a structured block in frontmatter, rendered as a callout in Obsidian and
+indexed as its own chunk type:
+
+```yaml
+bsa_elicit:  "Ask 'how does intraday liquidity get managed against LYNX settlement,
+              and what happens at gridlock or window cut-off?'"
+bsa_specify: "NFR: the hub SHALL track intraday liquidity against LYNX positions and
+              SHALL submit within LYNX operating windows."
+bsa_design:  "Forces decisions on liquidity reservation, payment sequencing, and
+              settlement-confirmation handling."
+bsa_dsib:    "LYNX is a systemically important FMI under central-bank oversight;
+              intraday liquidity ties to BCBS 248."
+```
+
+Separating *what a thing is* from *what to do about it* lets one note serve both a study
+question and a design review, with the router deciding which layer the question wants.
+
+### Answer surface
+
+Every response carries a **faithfulness score** against retrieved sources, a **confidence
+label**, and numbered **source cards** naming the note and section. When the vault does not
+cover part of a question, the system says so under a `GAPS · NOT IN NOTES` heading rather than
+filling the space — and offers to research those gaps externally, clearly tagged as
+web-sourced rather than vault-sourced.
+
+---
 
 ## Measured results
 
-| Metric | Value |
-|---|---|
-| Notes enriched with how-layer | 981 / 981 (100%) |
-| Chunks indexed | 38,394 / 38,401 (99.98%) |
-| Retrieval — Top-1 | 67% |
-| Retrieval — Top-K | 81% |
-| Embedder | `mxbai-embed-large` (335M) |
-| Local generator | `qwen3:8b` |
-| Hosted generator (optional) | `gemini-2.5-flash` |
+Retrieval is evaluated against a fixed query set with known-correct target notes, reported as
+Top-1 (correct note ranked first) and Top-K (correct note anywhere in the returned set).
 
-The retrieval journey: an early baseline measured 38% Top-1 / 57% Top-K. Fixing an embedding-model prefix bug, then swapping to a stronger embedder with properly-tuned chunk sizing, brought it to 67% / 81%. Every step was measured against the same 21-question benchmark.
+| Configuration | Top-1 | Top-K |
+|---|:---:|:---:|
+| Semantic only | 67% | 86% |
+| **+ BM25 hybrid fusion** | **76%** | **86%** |
 
-## Tech stack
+```bash
+python3 eval_retrieval.py --md report.md
+```
 
-- **Embeddings + local generation:** [Ollama](https://ollama.com) (`mxbai-embed-large`, `qwen3:8b`)
-- **Vector store:** ChromaDB (persistent, on-disk)
-- **Hosted generation + web grounding (optional):** Gemini 2.5 Flash
-- **API:** FastAPI
-- **UI:** single-file vanilla HTML/CSS/JS
-- **Hardware this runs on:** Apple M1 Pro, 16GB unified memory
+### Two findings worth recording
+
+#### Hybrid retrieval was silently disabled in production
+
+`rank_bm25` was not installed. `retrieval.py` degraded gracefully to semantic-only behind a
+single warning line, so nothing looked broken — every query returned plausible results, every
+evaluation run completed, and the reported accuracy was internally consistent. Half the
+retrieval stack had been dark for an unknown period.
+
+Installing the dependency recovered **9 points of Top-1 accuracy with no code change**.
+
+The finding is not really about a dependency. It is about a system reporting success on a
+configuration nobody had verified was actually running. Graceful degradation and silent
+degradation are the same behaviour seen from different distances.
+
+#### A proposed schema change was rejected on the evidence
+
+Hypothesis: adding two fields to the practitioner layer — `failure` (how this breaks in
+production) and `verify` (how to confirm the note is still true) — would improve retrieval for
+diagnostic questions.
+
+The fields were authored, stamped, chunked and embedded. Evaluation used two query groups:
+
+- **Group A** — questions answerable *only* from the new fields
+- **Group B** — regression controls answerable from unchanged note bodies
+
+**Group A scored 1/6 Top-1 across three separate retrieval configurations** — routing off,
+routing widened, BM25 enabled. Group B held at 5/6. The standing baseline was unaffected.
+
+Cause: all fields share a single chunk, so its embedding averages across unrelated topics and
+cannot win a focused diagnostic query against 41,240 content chunks. The fields cost nothing
+and returned nothing.
+
+The change was confined to the nine-note pilot and **not rolled out** to the vault.
+`eval_sanctions.py` holds the A/B harness.
+
+---
+
+## Stack
+
+| Layer | Choice | Rationale |
+|---|---|---|
+| Vector store | ChromaDB, persistent | Local, serverless, sufficient at this scale |
+| Embeddings | Ollama, 1024-dim | Runs offline — vault content never leaves the machine |
+| Lexical | `rank_bm25` | Exact technical tokens that embeddings blur |
+| Reranker | `BAAI/bge-reranker-base` | Cross-encoder precision over a small fused pool |
+| Generation, default | Ollama `qwen3:8b` | Local and private by default |
+| Generation, optional | Gemini 3.5 Flash | Stronger synthesis, opt-in per query |
+| API | FastAPI + uvicorn | Minimal surface, fast startup |
+| Frontend | Static HTML | No build step, no framework churn |
+
+---
+
+## Deployment
+
+Runs locally on `localhost:8000`.
+
+For remote access it is published as a **private service behind Cloudflare Tunnel with Zero
+Trust access control** — egress-only, no inbound ports, no static IP, and no VPN client
+required on the accessing device. Authentication is enforced at the network edge before any
+request reaches the application.
+
+---
 
 ## Setup
 
 ```bash
-# 1. Install Ollama and pull the models
-#    (https://ollama.com)
-ollama pull mxbai-embed-large
-ollama pull qwen3:8b
-
-# 2. Python environment
+# 1 · environment
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# 3. Configure
+# 2 · configuration
 cp .env.example .env
-#    edit .env — set your paths, and optionally a GEMINI_API_KEY
+# set EMBED_MODEL, GEN_MODEL, and optionally GEMINI_API_KEY
 
-# 4. Build the index over your own Markdown corpus
+# 3 · models
+ollama serve
+ollama pull "$(grep '^EMBED_MODEL=' .env | cut -d= -f2)"
+ollama pull qwen3:8b
+
+# 4 · build the index
+python3 stamp_apply.py --vault <vault-path> --out <working-copy> --blocks-dir ./batches
 python3 chunker_v2.py
 python3 embed_index.py
 
-# 5. (Optional) Measure retrieval against your own eval set
-python3 eval_retrieval.py
-
-# 6. Run
-python3 app.py
-#    open http://localhost:8000
+# 5 · run
+uvicorn app:app --port 8000
 ```
 
-> **Note:** This repository ships the engine, not a corpus. Point it at your own Markdown notes. There is no sample vault — by design, the knowledge stays with its author.
+---
 
-## Honest limitations
+## Security posture
 
-- **The ceiling is note depth, not model quality.** A 200-word conceptual note produces a 200-word conceptual answer, regardless of model. The system is only as good as the corpus underneath it.
-- **The four-field ontology breaks down on purely descriptive concepts.** A note like "What is a JWT" has no real Elicit/Specify/Design distinction; those fields end up thin.
-- **External research is a single grounded call, not a research agent.** It doesn't iterate or synthesize across multiple search passes.
-- **Retrieval still misses ~19% Top-K**, usually when the query term doesn't match the corpus's term for the same concept.
+- **No secrets in source.** Configuration reads from environment; `.env` is gitignored.
+- **Exceptions are redacted before rendering.** `httpx` embeds the full request URL in its
+  exception messages, and some providers pass the API key as a query parameter — so rendering
+  a raw exception leaks credentials to the browser on any upstream 5xx. `_safe_err()` strips
+  credential patterns before exception text reaches the UI.
+- **Vault content is gitignored.** `chunks.jsonl`, `chroma/`, and the vault working copies
+  never enter version control.
+- **Local by default.** Cloud generation is a deliberate per-query choice, never a fallback.
 
-## Roadmap
+---
 
-- **Self-stamping pipeline** — auto-draft the how-layer for new notes; human reviews each.
-- **Recommended Position** — a verdict-style dimension (choice + rationale + accepted cost + conditions to flip) that turns the system from descriptive to decisional.
-- **Brief Generator** — produce one-page decision memos and executive talking points from any answer.
-- **Multi-hop reasoning** — cross-vault chained retrieval, to answer questions that span domains.
+## Repository layout
 
-## Author
+```
+chunker_v2.py        structure-aware chunking, typed chunks
+embed_index.py       embedding and index construction
+retrieval.py         hybrid retrieval, RRF fusion, rerank, graph-hop
+generate.py          answer synthesis, faithfulness scoring, gap detection
+app.py               FastAPI service and health endpoint
+stamp_apply.py       practitioner-layer injection
+eval_retrieval.py    retrieval evaluation harness
+eval_sanctions.py    A/B harness for schema experiments
+patch_router.py      self-testing patch for the query router
+ui/index.html        frontend
+backend/config.py    configuration
+```
 
-**Muhammad Atif** *(Senior Business Systems Analyst — Lifelong Learner)*
+---
 
-Built on personal time, over four months, on a personal laptop. The methodology — a fixed execution ontology on top of a hand-authored knowledge base, plus a measured, faithfulness-gated RAG with explicit, tagged external research — generalizes well beyond its original domain.
-
-## License
-
-Released under the MIT License. See [LICENSE](LICENSE).
+<div align="center">
+<sub><b>Muhammad Atif</b> · Senior Business Systems Analyst — payments, ISO 20022, and AI assurance</sub>
+</div>
