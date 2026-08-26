@@ -63,25 +63,16 @@ _HOW_PATTERNS = re.compile(
     r"\b(how do i|how do we|how would i|how to|how should|what should i do|"
     r"steps to|approach to|elicit|specify|design|requirement|"
     r"as a bsa|what do i ask|how can i|"
-    # --- diagnostic register ---
+    # --- diagnostic / failure register (bsa_failure) ---
     r"what goes wrong|what breaks|what fails|goes wrong when|breaks when|"
     r"fails when|failure mode|failure modes|what happens when|what happens if|"
     r"root cause|symptom|common mistake|common error|pitfall|gotcha|"
     r"why does .{0,30}fail|"
-    # --- verification register ---
+    # --- verification register (bsa_verify) ---
     r"how do i verify|how do i check|how do i confirm|how do i test|"
     r"how do i validate|how do i prove|how do i audit|how do i know|"
     r"verify that|check whether|check that|confirm that|test that|"
-    r"what to look for|red flag|red flags|evidence that|"
-    # --- phrasings observed in real working questions (v2) ---
-    r"where do i (?:start|look|begin)|where to (?:start|look)|"
-    r"what are the usual|usual causes|common causes|common reasons|"
-    r"what should .{0,25}\bown\b|who owns|what do i need|what do we tell|"
-    r"what did we .{0,15}get wrong|get(?:ting)? wrong|"
-    r"what evidence|evidence would|evidence for|"
-    r"usually fail|usually fails|often fail|tend to fail|"
-    r"what happens to|first thing|"
-    r"is that (?:good|bad)|should i be (?:worried|concerned))\b",
+    r"what to look for|red flag|red flags|evidence that)\b",
     re.IGNORECASE,
 )
 def _looks_like_how(query: str) -> bool:
