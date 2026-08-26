@@ -408,7 +408,7 @@ body.printing-one .arow.print-target{display:flex}
       <select class="vaultsel" id="provtoggle" title="Generation provider for this query">
         <option value="">default (.env)</option>
         <option value="ollama">local (ollama) — unlimited</option>
-        <option value="gemini">gemini 2.5 flash — daily-capped</option>
+        <option value="gemini">gemini 3.5 flash — daily-capped</option>
       </select>
       <span class="live"></span><span id="prov">local · grounded</span>
     </div>
@@ -854,15 +854,21 @@ function exportAnswerAsPDF(acolEl, originalQuery){
 
 <script>
 (async () => {
-  try {
-    const r = await fetch('/health');
-    const d = await r.json();
-    const n = (d.indexed_notes || 0).toLocaleString();
-    const c = (d.indexed_chunks || 0).toLocaleString();
+  const paint = (d) => {
+    const n = d.indexed_notes || 0, c = d.indexed_chunks || 0;
+    if (!c) return false;                       // never render a zero
     const el = document.getElementById('brand-stats');
-    if (el) el.textContent = `${n} notes \u00B7 ${c} chunks`;
-    document.body.setAttribute('data-note-count', n);
-  } catch (e) { console.error('stats fetch failed', e); }
+    if (el) el.textContent = `${n.toLocaleString()} \u00B7 ${c.toLocaleString()} chunks`.replace('\u00B7', 'notes \u00B7');
+    document.body.setAttribute('data-note-count', n.toLocaleString());
+    return true;
+  };
+  for (let i = 0; i < 5; i++) {
+    try {
+      const d = await (await fetch('/health', {cache: 'no-store'})).json();
+      if (paint(d)) return;
+    } catch (e) { /* retry */ }
+    await new Promise(r => setTimeout(r, 1500 * (i + 1)));
+  }
 })();
 </script>
 </body>

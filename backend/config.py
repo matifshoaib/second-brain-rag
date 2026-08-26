@@ -22,7 +22,7 @@ EMBED_MODEL     = os.getenv("EMBED_MODEL", "nomic-embed-text")
 # ---- generation provider: "ollama" (local) | "gemini" (free cloud) ----
 GEN_PROVIDER    = os.getenv("GEN_PROVIDER", "ollama")
 GEN_MODEL       = os.getenv("GEN_MODEL", "qwen2.5:7b")          # ollama
-GEMINI_MODEL    = os.getenv("GEMINI_MODEL", "gemini-2.0-flash") # gemini
+GEMINI_MODEL    = os.getenv("GEMINI_MODEL", "gemini-3.5-flash") # gemini
 GEMINI_API_KEY  = os.getenv("GEMINI_API_KEY", "")
 
 # ---- retrieval tuning ----
