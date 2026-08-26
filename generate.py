@@ -96,6 +96,24 @@ Content rules:
 - Return the JSON object only. No prose before or after."""
 
 
+
+def _safe_err(e):
+    """Exception text with any API key or credential stripped.
+
+    httpx puts the full request URL in its exception message, and Gemini
+    passes the key as a ?key= query parameter -- so a raw f"{e}" leaks the
+    key straight into the UI. Never render an exception without this.
+    """
+    import re as _re
+    t = str(e)
+    t = _re.sub(r'([?&](?:key|api_key|apikey|token|access_token)=)[^&\s\'"]+',
+                r'\1[REDACTED]', t, flags=_re.I)
+    t = _re.sub(r'\bAQ\.[A-Za-z0-9._-]{10,}', '[REDACTED]', t)
+    t = _re.sub(r'\bAIza[A-Za-z0-9._-]{10,}', '[REDACTED]', t)
+    t = _re.sub(r'\bsk-[A-Za-z0-9._-]{10,}', '[REDACTED]', t)
+    return t
+
+
 def _build_context(hits: list) -> str:
     blocks = []
     for h in hits:
@@ -334,13 +352,13 @@ def answer(query: str, vault: str | None = None) -> dict:
                        '"regulatory_anchors":[],"gaps":[],"confidence":"low"}')
             else:
                 raw = json.dumps({
-                    "synthesis": f"[generation error] {e}",
+                    "synthesis": f"[generation error] {_safe_err(e)}",
                     "dimensions": {}, "regulatory_anchors": [],
                     "gaps": [], "confidence": "low",
                 })
         except Exception as e:
             raw = json.dumps({
-                "synthesis": f"[generation error] {e}",
+                "synthesis": f"[generation error] {_safe_err(e)}",
                 "dimensions": {}, "regulatory_anchors": [],
                 "gaps": [], "confidence": "low",
             })
