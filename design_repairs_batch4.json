@@ -1,0 +1,7 @@
+{
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/D1-Security-and-Risk-Management.md": "Forces the decision on where accountability for security risk formally sits, and whether risk runs as a continuous governed process or a periodic technical exercise.",
+
+  "The-Architects-Codex/28-CISSP-Domain-Knowledge/D3-Security-Architecture-and-Engineering.md": "Forces the decision on which security properties are engineered into the architecture versus assessed after the design is fixed, and what a late finding actually costs to remediate.",
+
+  "The-Architects-Codex/Homelab_Master_Plan_v8.3.md": "Forces the decision on which lab practices are deliberately simplified for convenience versus which must mirror production rigour to be transferable at all."
+}
