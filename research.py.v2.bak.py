@@ -306,23 +306,9 @@ def research_gaps(original_query: str, gaps: list[str]) -> dict:
     try:
         resp = _gemini_with_search(full_prompt)
     except httpx.HTTPStatusError as e:
-        code = e.response.status_code
-        if code == 429:
-            # Gemini's free tier meters Google Search grounding on its own low
-            # daily cap, SEPARATE from normal generation. A 429 here does not
-            # mean the key is dead -- card generation and note answers still
-            # work. The cap resets at 00:00 UTC. The old message claimed
-            # "~15 req/min / try again in 60 seconds", which was wrong: this is
-            # a daily grounding quota, not a per-minute one, so a 60s wait never
-            # helped.
-            msg = ("External research is rate-limited. Gemini's free tier meters "
-                   "Google Search grounding separately from normal generation, on "
-                   "a low daily cap. Answers from your own notes are unaffected -- "
-                   "only this external-research button is. The grounding quota "
-                   "resets at 00:00 UTC (8pm ET).")
-        else:
-            msg = (f"External research call failed: HTTP {code}. "
-                   "This is usually a transient API issue -- try again shortly.")
+        msg = (f"External research call failed: HTTP {e.response.status_code}. "
+               f"This may be a rate limit (free tier ~15 req/min) or a temporary API issue. "
+               f"Try again in 60 seconds.")
         return {
             "provenance": PROVENANCE_TAG,
             "available": False,
