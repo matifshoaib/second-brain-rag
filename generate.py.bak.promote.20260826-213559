@@ -222,7 +222,7 @@ def _gen_ollama(prompt: str, client: httpx.Client) -> str:
             "stream": False,
             "format": "json",   # Ollama-native JSON mode — keeps Qwen3 on schema
             "options": {
-                "num_ctx": 16384,
+                "num_ctx": 8192,
                 "num_predict": 4096,
                 "temperature": 0.3,
             },
@@ -453,7 +453,6 @@ def _flag_unverified_numbers(structured: dict, retrieved: str) -> dict:
     # digits present in the retrieved corpus, comma-stripped
     corpus = retrieved.replace(",", "")
     corpus_digits = set(re.findall(r"\d+(?:\.\d+)?", corpus))
-    corpus_norm = re.sub(r"\s+", "", corpus.lower())
 
     def _scan(text: str, found: dict):
         for m in _NUM_CLAIM.finditer(text or ""):
@@ -462,24 +461,8 @@ def _flag_unverified_numbers(structured: dict, retrieved: str) -> dict:
             if _IDENT_CTX.search(window):
                 continue                      # B-13, pacs.008, ISO 20022...
             bare = raw.replace(",", "")
-            if unit:
-                u = unit.lower()
-                if u in ("ms", "millisecond", "milliseconds"):
-                    alts = ("ms", "millisecond", "milliseconds")
-                elif u in ("s", "sec", "secs", "second", "seconds"):
-                    alts = ("s", "sec", "secs", "second", "seconds")
-                elif u in ("min", "mins", "minute", "minutes"):
-                    alts = ("min", "mins", "minute", "minutes")
-                elif u in ("hr", "hrs", "hour", "hours"):
-                    alts = ("hr", "hrs", "hour", "hours")
-                elif u in ("%", "percent"):
-                    alts = ("%", "percent")
-                else:
-                    alts = (u,)
-                if any((bare + a) in corpus_norm for a in alts):
-                    continue              # digits+unit found in notes
-            elif bare in corpus_digits:
-                continue                  # unitless claim, bare digits found
+            if bare in corpus_digits:
+                continue                      # supported somewhere in notes
             try:
                 if not unit and 1900 <= float(bare) <= 2100:
                     continue                  # bare year
@@ -580,61 +563,6 @@ def _calibrate_confidence(structured: dict, top_sim: float) -> dict:
     return structured
 
 
-PROMOTE_NOTES  = int(os.getenv("PROMOTE_NOTES", "2"))
-PROMOTE_CHUNKS = int(os.getenv("PROMOTE_CHUNKS", "2"))
-
-
-def _promote_from_practice(query: str, hits: list, practice: str,
-                           vault: str | None = None) -> list:
-    """Cross-lane promotion: practice lane found a note the content lane
-    missed -> pull that note's best content chunks into the pool.
-
-    Measured cause: 'Real-Time Fraud Scoring.md' surfaced in the practice
-    lane for the fraud-scoring question while zero of its content chunks
-    made the main pool, so generation invented figures the note actually
-    contains. Additive and fail-silent -- returns hits unchanged on error.
-    """
-    if not practice or PROMOTE_NOTES <= 0:
-        return hits
-    try:
-        have = {h["metadata"].get("note_path") for h in hits}
-        paths = re.findall(r"\] from (.+?) ---", practice)
-        missing = [p for p in dict.fromkeys(paths) if p and p not in have]
-        missing = missing[:PROMOTE_NOTES]
-        if not missing:
-            return hits
-
-        import chromadb
-        from retrieval import _embed_query, _to_similarity
-        col = chromadb.PersistentClient(
-            path=config.CHROMA_DIR).get_collection(config.COLLECTION)
-        with httpx.Client() as _c:
-            qe = _embed_query(query, _c)
-
-        for p in missing:
-            res = col.query(
-                query_embeddings=[qe],
-                n_results=PROMOTE_CHUNKS + 3,
-                where={"note_path": p},
-                include=["documents", "metadatas", "distances"],
-            )
-            added = 0
-            if res["ids"] and res["ids"][0]:
-                for doc, meta, dist in zip(res["documents"][0],
-                                           res["metadatas"][0],
-                                           res["distances"][0]):
-                    if meta.get("chunk_type") == "how_layer":
-                        continue
-                    hits.append({"text": doc, "metadata": meta,
-                                 "similarity": _to_similarity(dist)})
-                    added += 1
-                    if added >= PROMOTE_CHUNKS:
-                        break
-        return hits
-    except Exception:
-        return hits
-
-
 def answer(query: str, vault: str | None = None) -> dict:
     r = retrieve(query, vault=vault)
 
@@ -648,9 +576,8 @@ def answer(query: str, vault: str | None = None) -> dict:
             "top_similarity": r["top_similarity"],
         }
 
+    context = _build_context(r["hits"])
     practice = _how_layer_context(query, vault=vault)
-    hits = _promote_from_practice(query, list(r["hits"]), practice, vault=vault)
-    context = _build_context(hits)
 
     practice_block = ""
     if practice:
@@ -702,7 +629,7 @@ def answer(query: str, vault: str | None = None) -> dict:
         "answer": answer_text,
         "refused": False,
         "structured": structured,
-        "sources": _sources(hits),
+        "sources": _sources(r["hits"]),
         "how_mode": r["how_mode"],
         "top_similarity": r["top_similarity"],
     }

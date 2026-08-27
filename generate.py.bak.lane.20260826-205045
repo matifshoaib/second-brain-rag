@@ -35,7 +35,6 @@ Hardening in this version:
   - Provider-swappable: GEN_PROVIDER = "ollama" | "gemini".
 """
 import json
-import os
 import re
 
 import httpx
@@ -93,29 +92,6 @@ Content rules:
 - The "synthesis" field is mandatory and must be EXHAUSTIVE. Do not truncate to make cards look balanced. The cards are SECONDARY — they augment the synthesis, never replace it.
 - Use ONLY the CONTEXT below. Do not invent facts, regulations, or definitions. If something is not in the notes, list it under "gaps".
 - Regulatory anchors must be lifted from the notes (D-SIB Hook / bsa_dsib content).
-
-GROUNDING RULE -- specificity must come from the CONTEXT, never from your own knowledge of how such systems are usually built. A fabricated number is worse than a vague one: it looks authoritative and gets carried into a design review as though the notes supported it.
-
-The following may appear in a dimension item or in the synthesis ONLY IF present in the CONTEXT or the PRACTICE LIBRARY:
-  - any number: latency, timeout, SLA, percentile, threshold, score band, ratio, percentage, duration, deadline, dollar amount
-  - any named product, vendor, model architecture, algorithm or library
-  - any named internal role, team or committee the notes do not name
-  - any regulation, guideline number or clause the notes do not cite
-
-Where the retrieved material does not supply the value, you have exactly two options:
-  1. Write the item in its correct SHAPE with the value marked absent:
-       "Establish fail-safe routing that bypasses to static rules when scoring latency exceeds the agreed threshold [threshold not in notes]"
-       "The pipeline SHALL complete within the agreed pre-submission latency budget [value not in notes]"
-  2. Omit the item and record the missing value under "gaps".
-
-DO NOT substitute a plausible industry-typical figure. "800ms", "sub-second", "99.99%", "10:1", "24 hours" are exactly the values that sound right and are unsupported. A decomposed budget that adds up internally is still fabrication if the notes never gave the numbers.
-
-Naming the ROLE to ask is grounded and encouraged. Naming the THRESHOLD they would give you is not. "Ask fraud operations what false-positive ratio the analyst queue can absorb" is correct; "SHALL hold at 10:1" is invention unless the notes say so.
-
-This rule does not license thinner cards. Keep the item counts -- mark the values instead.
-- A "BSA PRACTICE LIBRARY" section may follow the CONTEXT. It holds curated Elicit / Specify / Design / D-SIB blocks that were authored by hand for the notes most relevant to this question. BUILD THE DIMENSION CARDS FROM THESE FIRST. Adapt, combine and sharpen them against the specific question asked -- do not copy them verbatim, and do not ignore them in favour of composing your own. They are the vault's own practitioner layer and are more reliable than anything you would invent.
-- Compose a card item yourself ONLY where the practice library offers nothing relevant to that dimension. When you do, it must still be grounded in the CONTEXT.
-- The practice library feeds the CARDS. The "synthesis" field still draws on the CONTEXT, not on the practice blocks.
 - "confidence" reflects how directly the notes answer: "high" = explicit, "medium" = synthesis required, "low" = partial.
 - Return the JSON object only. No prose before or after."""
 
@@ -136,61 +112,6 @@ def _safe_err(e):
     t = _re.sub(r'\bAIza[A-Za-z0-9._-]{10,}', '[REDACTED]', t)
     t = _re.sub(r'\bsk-[A-Za-z0-9._-]{10,}', '[REDACTED]', t)
     return t
-
-
-HOW_LANE       = os.getenv("HOW_LANE", "true").lower() == "true"
-HOW_LANE_K     = int(os.getenv("HOW_LANE_K", "12"))
-HOW_LANE_FLOOR = float(os.getenv("HOW_LANE_FLOOR", "0.45"))
-
-
-def _how_layer_context(query: str, vault: str | None = None) -> str:
-    """Second retrieval lane -- how_layer chunks ONLY.
-
-    The main pool is 96.8% content chunks, so the vault's curated BSA blocks
-    rarely make it into the prompt. This queries for them directly so the
-    cards can be built from authored practitioner material instead of being
-    composed from nothing.
-
-    Returns "" on any failure -- the lane is additive and must never break
-    an answer.
-    """
-    if not HOW_LANE:
-        return ""
-    try:
-        import chromadb
-        from retrieval import _embed_query, _to_similarity
-
-        col = chromadb.PersistentClient(
-            path=config.CHROMA_DIR).get_collection(config.COLLECTION)
-
-        where = {"chunk_type": "how_layer"}
-        if vault:
-            where = {"$and": [{"chunk_type": "how_layer"}, {"vault": vault}]}
-
-        with httpx.Client() as _c:
-            qemb = _embed_query(query, _c)
-
-        res = col.query(
-            query_embeddings=[qemb],
-            n_results=HOW_LANE_K,
-            where=where,
-            include=["documents", "metadatas", "distances"],
-        )
-        if not res["ids"] or not res["ids"][0]:
-            return ""
-
-        blocks = []
-        for doc, meta, dist in zip(res["documents"][0],
-                                   res["metadatas"][0],
-                                   res["distances"][0]):
-            sim = _to_similarity(dist)
-            if sim < HOW_LANE_FLOOR:
-                continue
-            src = meta.get("note_path", "unknown")
-            blocks.append(f"--- Practice block [{sim:.2f}] from {src} ---\n{doc}")
-        return "\n\n".join(blocks)
-    except Exception:
-        return ""
 
 
 def _build_context(hits: list) -> str:
@@ -222,7 +143,7 @@ def _gen_ollama(prompt: str, client: httpx.Client) -> str:
             "stream": False,
             "format": "json",   # Ollama-native JSON mode — keeps Qwen3 on schema
             "options": {
-                "num_ctx": 16384,
+                "num_ctx": 8192,
                 "num_predict": 4096,
                 "temperature": 0.3,
             },
@@ -390,8 +311,6 @@ def _normalize_structured(d: dict) -> dict:
     conf = s(d.get("confidence", "")).lower()
     if conf not in {"high", "medium", "low"}:
         conf = "medium"
-    # NOTE: this is only the model's self-report. answer() calls
-    # _calibrate_confidence() afterwards to cap it against observable signals.
 
     return {
         "synthesis":          s(d.get("synthesis", "")),
@@ -400,239 +319,6 @@ def _normalize_structured(d: dict) -> dict:
         "gaps":               lst(d.get("gaps", [])),
         "confidence":         conf,
     }
-
-
-CONF_SIM_LOW = float(os.getenv("CONF_SIM_LOW", "0.68"))
-CONF_SIM_MED = float(os.getenv("CONF_SIM_MED", "0.78"))
-
-_RANK = {"low": 0, "medium": 1, "high": 2}
-_UNRANK = {0: "low", 1: "medium", 2: "high"}
-_NOT_IN_NOTES = re.compile(r"\[[^\]]*not in (?:the )?notes[^\]]*\]", re.I)
-
-
-NUMGUARD = os.getenv("NUMGUARD", "true").lower() == "true"
-NUMGUARD_MAX_REPORT = int(os.getenv("NUMGUARD_MAX_REPORT", "8"))
-
-# A measurement claim: digits optionally followed by a unit. Deliberately
-# narrow -- we want thresholds, latencies, percentages and ratios, not every
-# digit that happens to appear in prose.
-_NUM_CLAIM = re.compile(
-    r"(?<![A-Za-z0-9.\-/])"                     # not mid-identifier
-    r"(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)"      # 1,000 or 800 or 99.9
-    r"\s?"
-    r"(ms|milliseconds?|seconds?|secs?|minutes?|mins?|hours?|hrs?|days?|"
-    r"%|percent|bps|x|:1|k|K|M|bn)?"
-    # NOTE: '.' deliberately absent from this lookahead. Including it meant a
-    # value at the end of a sentence ("...within 200ms.") failed to match and
-    # slipped through unchecked. Identifiers stay safe via the LEADING
-    # lookbehind, which does block a digit preceded by '.' (pacs.008).
-    r"(?![A-Za-z0-9\-/])"
-)
-
-# Tokens that contain digits but are identifiers, not measurements.
-_IDENT_CTX = re.compile(
-    r"[A-Za-z]-?\d|\d+\.\d+\.\d|"              # B-13, E-23, pacs.008
-    r"\b(?:ISO|FIPS|SP|NIST|MT|MX|pacs|camt|pain|admi|BCBS|PCI|SOC)\b",
-    re.I)
-
-
-def _flag_unverified_numbers(structured: dict, retrieved: str) -> dict:
-    """Collect numeric claims that do not appear in the retrieved text.
-
-    Non-destructive: the model's wording is left alone. The finding is
-    surfaced through "gaps" and "unverified_values", and the count is used
-    to cap confidence.
-
-    Permissive by design -- if the digits appear ANYWHERE in what was
-    retrieved, the claim is treated as supported. The goal is to catch
-    fabrication, not to litigate phrasing.
-    """
-    if not NUMGUARD or not retrieved:
-        return structured
-
-    # digits present in the retrieved corpus, comma-stripped
-    corpus = retrieved.replace(",", "")
-    corpus_digits = set(re.findall(r"\d+(?:\.\d+)?", corpus))
-    corpus_norm = re.sub(r"\s+", "", corpus.lower())
-
-    def _scan(text: str, found: dict):
-        for m in _NUM_CLAIM.finditer(text or ""):
-            raw, unit = m.group(1), (m.group(2) or "")
-            window = text[max(0, m.start() - 12):m.end() + 12]
-            if _IDENT_CTX.search(window):
-                continue                      # B-13, pacs.008, ISO 20022...
-            bare = raw.replace(",", "")
-            if unit:
-                u = unit.lower()
-                if u in ("ms", "millisecond", "milliseconds"):
-                    alts = ("ms", "millisecond", "milliseconds")
-                elif u in ("s", "sec", "secs", "second", "seconds"):
-                    alts = ("s", "sec", "secs", "second", "seconds")
-                elif u in ("min", "mins", "minute", "minutes"):
-                    alts = ("min", "mins", "minute", "minutes")
-                elif u in ("hr", "hrs", "hour", "hours"):
-                    alts = ("hr", "hrs", "hour", "hours")
-                elif u in ("%", "percent"):
-                    alts = ("%", "percent")
-                else:
-                    alts = (u,)
-                if any((bare + a) in corpus_norm for a in alts):
-                    continue              # digits+unit found in notes
-            elif bare in corpus_digits:
-                continue                  # unitless claim, bare digits found
-            try:
-                if not unit and 1900 <= float(bare) <= 2100:
-                    continue                  # bare year
-            except ValueError:
-                pass
-            if not unit and len(bare) <= 1:
-                continue                      # "2 passes", "3 lines"
-            found.setdefault(f"{raw}{unit}", 0)
-            found[f"{raw}{unit}"] += 1
-
-    found: dict = {}
-    for items in (structured.get("dimensions") or {}).values():
-        seq = items if isinstance(items, list) else [items]
-        for it in seq:
-            _scan(str(it), found)
-    _scan(structured.get("synthesis", ""), found)
-
-    if not found:
-        return structured
-
-    ordered = sorted(found, key=lambda k: -found[k])
-    structured["unverified_values"] = ordered
-
-    shown = ordered[:NUMGUARD_MAX_REPORT]
-    more = len(ordered) - len(shown)
-    line = ("Values stated in this answer that do not appear in the retrieved "
-            "notes -- treat as unconfirmed and source them before use: "
-            + ", ".join(shown)
-            + (f" (and {more} more)" if more > 0 else ""))
-    gaps = list(structured.get("gaps") or [])
-    gaps.append(line)
-    structured["gaps"] = gaps
-    return structured
-
-
-def _calibrate_confidence(structured: dict, top_sim: float) -> dict:
-    """Cap the model's self-reported confidence against observable signals.
-
-    The model cannot be trusted to grade itself -- it has reported "high"
-    while its own gaps list admitted the notes did not cover the question.
-    This derives a ceiling from things that are actually measurable and takes
-    the lower of (claimed, ceiling). The model may lower its confidence; it
-    may not inflate it.
-
-    Signals:
-      top_sim  -- best semantic similarity from retrieval
-      gaps     -- aspects the model itself flagged as uncovered
-      markers  -- [not in notes] placeholders across the dimension items
-    """
-    claimed = structured.get("confidence", "medium")
-    gaps = structured.get("gaps") or []
-
-    marker_count = 0
-    for items in (structured.get("dimensions") or {}).values():
-        seq = items if isinstance(items, list) else [items]
-        for it in seq:
-            if _NOT_IN_NOTES.search(str(it)):
-                marker_count += 1
-
-    reasons = []
-    ceiling = 2  # high
-
-    if top_sim < CONF_SIM_LOW:
-        ceiling = min(ceiling, 0)
-        reasons.append(f"weak retrieval (top similarity {top_sim:.2f})")
-    elif top_sim < CONF_SIM_MED:
-        ceiling = min(ceiling, 1)
-        reasons.append(f"moderate retrieval (top similarity {top_sim:.2f})")
-
-    if gaps:
-        ceiling = min(ceiling, 1)
-        reasons.append(f"{len(gaps)} declared gap(s)")
-
-    if marker_count:
-        ceiling = min(ceiling, 1)
-        reasons.append(f"{marker_count} value(s) not in notes")
-
-    unverified = structured.get("unverified_values") or []
-    if unverified:
-        ceiling = min(ceiling, 1)
-        reasons.append(f"{len(unverified)} unverified numeric claim(s)")
-    if len(unverified) >= 5:
-        ceiling = min(ceiling, 0)
-        reasons.append("numeric claims largely unsupported by the notes")
-
-    if len(gaps) >= 2 and marker_count >= 3:
-        ceiling = min(ceiling, 0)
-        reasons.append("multiple gaps and multiple unsupported values")
-
-    final = _UNRANK[min(_RANK.get(claimed, 1), ceiling)]
-    structured["confidence"] = final
-    if final != claimed:
-        structured["confidence_reason"] = (
-            f"model claimed {claimed}; capped to {final} -- "
-            + "; ".join(reasons))
-    elif reasons:
-        structured["confidence_reason"] = "; ".join(reasons)
-    return structured
-
-
-PROMOTE_NOTES  = int(os.getenv("PROMOTE_NOTES", "2"))
-PROMOTE_CHUNKS = int(os.getenv("PROMOTE_CHUNKS", "2"))
-
-
-def _promote_from_practice(query: str, hits: list, practice: str,
-                           vault: str | None = None) -> list:
-    """Cross-lane promotion: practice lane found a note the content lane
-    missed -> pull that note's best content chunks into the pool.
-
-    Measured cause: 'Real-Time Fraud Scoring.md' surfaced in the practice
-    lane for the fraud-scoring question while zero of its content chunks
-    made the main pool, so generation invented figures the note actually
-    contains. Additive and fail-silent -- returns hits unchanged on error.
-    """
-    if not practice or PROMOTE_NOTES <= 0:
-        return hits
-    try:
-        have = {h["metadata"].get("note_path") for h in hits}
-        paths = re.findall(r"\] from (.+?) ---", practice)
-        missing = [p for p in dict.fromkeys(paths) if p and p not in have]
-        missing = missing[:PROMOTE_NOTES]
-        if not missing:
-            return hits
-
-        import chromadb
-        from retrieval import _embed_query, _to_similarity
-        col = chromadb.PersistentClient(
-            path=config.CHROMA_DIR).get_collection(config.COLLECTION)
-        with httpx.Client() as _c:
-            qe = _embed_query(query, _c)
-
-        for p in missing:
-            res = col.query(
-                query_embeddings=[qe],
-                n_results=PROMOTE_CHUNKS + 3,
-                where={"note_path": p},
-                include=["documents", "metadatas", "distances"],
-            )
-            added = 0
-            if res["ids"] and res["ids"][0]:
-                for doc, meta, dist in zip(res["documents"][0],
-                                           res["metadatas"][0],
-                                           res["distances"][0]):
-                    if meta.get("chunk_type") == "how_layer":
-                        continue
-                    hits.append({"text": doc, "metadata": meta,
-                                 "similarity": _to_similarity(dist)})
-                    added += 1
-                    if added >= PROMOTE_CHUNKS:
-                        break
-        return hits
-    except Exception:
-        return hits
 
 
 def answer(query: str, vault: str | None = None) -> dict:
@@ -648,19 +334,9 @@ def answer(query: str, vault: str | None = None) -> dict:
             "top_similarity": r["top_similarity"],
         }
 
-    practice = _how_layer_context(query, vault=vault)
-    hits = _promote_from_practice(query, list(r["hits"]), practice, vault=vault)
-    context = _build_context(hits)
-
-    practice_block = ""
-    if practice:
-        practice_block = (
-            "\n\n=== BSA PRACTICE LIBRARY (curated how-layer blocks - "
-            "BUILD THE CARDS FROM THESE) ===\n" + practice)
-
+    context = _build_context(r["hits"])
     prompt = (f"{SYSTEM_PROMPT}\n\n=== CONTEXT (the only knowledge you may use) ==="
-              f"\n{context}{practice_block}"
-              f"\n\n=== QUESTION ===\n{query}\n\n=== JSON RESPONSE ===\n")
+              f"\n{context}\n\n=== QUESTION ===\n{query}\n\n=== JSON RESPONSE ===\n")
 
     raw = ""
     with httpx.Client() as client:
@@ -690,9 +366,6 @@ def answer(query: str, vault: str | None = None) -> dict:
     parsed = _extract_json(raw)
     if parsed is not None:
         structured = _normalize_structured(parsed)
-        structured = _flag_unverified_numbers(
-            structured, context + "\n" + practice)
-        structured = _calibrate_confidence(structured, r.get("top_similarity", 0.0))
         answer_text = structured["synthesis"] or "[Model returned structured output without a synthesis field.]"
     else:
         structured = None
@@ -702,7 +375,7 @@ def answer(query: str, vault: str | None = None) -> dict:
         "answer": answer_text,
         "refused": False,
         "structured": structured,
-        "sources": _sources(hits),
+        "sources": _sources(r["hits"]),
         "how_mode": r["how_mode"],
         "top_similarity": r["top_similarity"],
     }
