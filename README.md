@@ -2,7 +2,7 @@
 
 # Second Brain RAG
 
-**A local-first retrieval-augmented generation system over a 1,443-note knowledge vault — plus a spaced-repetition Drill that checks me on every note.**
+**A local-first retrieval-augmented generation system over a 1,507-note knowledge vault — plus a spaced-repetition Drill that checks me on every note.**
 
 Answers working questions from my own notes — not from training data — with every claim traceable to the note it came from.
 
@@ -11,7 +11,7 @@ Answers working questions from my own notes — not from training data — with 
 ![ChromaDB](https://img.shields.io/badge/ChromaDB-FF6B35)
 ![Ollama](https://img.shields.io/badge/Ollama-local--first-000000)
 ![Top-1](https://img.shields.io/badge/Top--1-76%25-2ea44f)
-![Chunks](https://img.shields.io/badge/chunks-45%2C124-5B21B6)
+![Chunks](https://img.shields.io/badge/chunks-45%2C532-5B21B6)
 
 </div>
 
@@ -19,15 +19,16 @@ Answers working questions from my own notes — not from training data — with 
 
 ## What it is
 
-An Obsidian vault of 1,443 interlinked notes — payments architecture, ISO 20022 and SWIFT,
-financial-crime compliance, information security standards, cloud and platform engineering —
+An Obsidian vault of 1,507 interlinked notes — payments architecture, ISO 20022 and SWIFT,
+financial-crime compliance (AML and sanctions), card security (PCI DSS), AI governance
+(ISO/IEC 42001, OWASP agentic risks), enterprise and data architecture, cloud and platform engineering —
 made queryable in natural language, with retrieval quality measured rather than assumed.
 
 | | |
 |---|---|
-| **Notes indexed** | 1,443 across 19 topic vaults |
-| **Chunks** | 45,124 — 43,681 content, 1,443 practitioner-layer |
-| **Link graph** | 8,274 wikilink edges, traversed at query time |
+| **Notes indexed** | 1,507 across 20 topic vaults |
+| **Chunks** | 45,532 — 44,025 content, 1,507 practitioner-layer |
+| **Link graph** | 8,481 wikilink edges, traversed at query time |
 | **Retrieval** | 76% Top-1 · 86% Top-K on a fixed 21-query evaluation set |
 | **Median chunk** | 183 tokens · 85% within the 80–1,000 target band |
 | **Default generation** | Local. Nothing leaves the machine unless explicitly selected. |
@@ -159,6 +160,7 @@ Top-1 (correct note ranked first) and Top-K (correct note anywhere in the return
 | Semantic only | 67% | 86% |
 | **+ BM25 hybrid fusion** | **76%** | **86%** |
 | + BM25, vault grown to 1,443 notes | 76% | 86% |
+| + BM25, vault grown to 1,478 notes | 76% | 86% |
 
 ```bash
 python3 eval_retrieval.py --md report.md
@@ -290,6 +292,8 @@ eval_retrieval.py    retrieval evaluation harness
 eval_sanctions.py    A/B harness for schema experiments
 patch_router.py      self-testing patch for the query router
 apply_redaction_to_index.py   push redacted text into the live index without re-embedding
+prune_index.py                remove vectors whose notes were renamed or deleted
+embed_repair.py               embed only the chunks missing from the index
 ui/index.html        frontend
 quiz/                Drill: engine.py (scheduler, generation, grading), quiz_app.py (API),
                      ui/drill.html, launchd template, README

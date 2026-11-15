@@ -1223,3 +1223,37 @@ Both apps are published through a locally-managed **Cloudflare Tunnel** behind *
 3. **Self-stamping pipeline** to remove the authoring bottleneck.
 4. **Always-on host** if laptop-bound availability becomes the constraint.
 
+
+---
+
+# Addendum — 15 November 2026
+
+## Corpus
+| | November addendum | Now |
+|---|---|---|
+| Notes | 1,443 in 19 vaults | **1,507 in 20 vaults** |
+| Chunks | 45,124 | **45,532** (44,025 content + 1,507 how-layer) |
+| Wikilink edges | 8,274 | **8,481** |
+| How-layer coverage | 1,443 / 1,443 | **1,507 / 1,507** |
+
+Seventy-seven notes were added in one day, all original synthesis written from books and standards in the personal library (no source text reproduced), each with an authored how-layer:
+- **Quantum-safe transition** — risk framework, five-step transition method, roadmap, crypto-agility (8 notes).
+- **ISO/IEC 42001** — a new vault: clauses 4–10, Annex A control objectives, AI system impact assessment, certification and audit, and a crosswalk to ISO 27001, NIST AI RMF, the EU AI Act and OSFI E-23 (14 notes).
+- **OWASP Top 10 for Agentic Applications (2026)** — one note per risk with banking scenarios, plus an agentic security reference architecture (12 notes).
+- **PCI DSS v4.0.1** — scoping, the twelve requirements, customized approach, validation, and patterns for a bank (8 notes).
+- **AML / CAMS** — typologies, FATF, the Canadian regime, risk-based approach, KYC and beneficial ownership, correspondent banking and wire transparency, monitoring and reporting, TBML, programme effectiveness (10 notes).
+- **TOGAF 10** — structure, ADM, content framework, continuum and repository, governance, business architecture, applied view for a BSA (9 notes).
+- **Kimball dimensional modelling** — four-step design, fact types and additivity, dimension techniques, SCDs, bus matrix, ETL subsystems, Kimball vs Inmon with a payments model (8 notes).
+- **Corporate treasury (CTP)** — the client-side view of bank cash management (7 notes).
+- A requirements-questioning framework for BSA reviews (1 note).
+
+**Lesson — stale copies are duplicates, not orphans.** Thirteen notes existed only in the stamped copy. All thirteen were older copies of notes that had since moved or been renamed in the source vault, so they were indexed twice. They were moved out of the corpus (not deleted) and their vectors pruned. Rule: before restoring a "missing" note, check whether it exists under another path.
+
+## Retrieval
+Unchanged at **76% Top-1 / 86% Top-K** after the first 35 additions (1,478 notes). The OWASP LLM Top 10 test query still ranks its expected note first even with the new agentic notes nearby. A re-run after the full 1,507-note build is part of the standard refresh.
+
+## Operating procedure for additions (current)
+1. Author notes and the how-layer batch; write notes to both the working source vault and the live Obsidian vault.
+2. `stamp_apply.py` (idempotent) → `chunker_v2.py` (redaction applied at write time).
+3. `prune_index.py` when anything was renamed, moved or removed; then `embed_repair.py` to embed only new chunks — minutes, not the forty-minute full rebuild.
+4. Restart the RAG service, rescan the Drill, re-run the eval.
