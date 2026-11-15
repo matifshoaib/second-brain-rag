@@ -12,3 +12,11 @@ chroma/
 source-vault/
 stamped/
 retrieval-eval-report*.md
+
+# Second Brain Drill (personal progress, local only)
+quiz/quiz.db*
+quiz/drill.log
+Update Second Brain.command
+
+# local name-redaction rules (contain the names they remove)
+redact.py

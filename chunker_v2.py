@@ -200,6 +200,13 @@ def main():
         if cs:
             edges += len(cs[0]["wikilinks"])
 
+    # keep the institution's name out of everything the apps show (see redact.py)
+    try:
+        from redact import redact_chunk          # local-only, git-ignored
+        all_chunks = [redact_chunk(c) for c in all_chunks]
+    except ImportError:
+        pass
+
     with open(OUT / "chunks.jsonl", "w") as f:
         for c in all_chunks:
             f.write(json.dumps(c) + "\n")
