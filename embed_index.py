@@ -3,7 +3,7 @@
 embed_index.py — embed every chunk from chunks.jsonl into ChromaDB.
 
 Reads config from backend/config.py (.env-driven). Embeddings are produced
-locally by Ollama's EMBED_MODEL (nomic-embed-text). Each chunk's metadata —
+locally by Ollama's EMBED_MODEL (mxbai-embed-large). Each chunk's metadata —
 including chunk_type and the bsa_* how-layer fields — is stored alongside the
 vector so retrieval can filter/boost on it later.
 

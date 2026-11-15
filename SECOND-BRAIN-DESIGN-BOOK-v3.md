@@ -3,7 +3,7 @@
 ### A Private, Measurable, Regulation-Aware Reasoning System Over a 981-Note Banking Knowledge Vault
 
 **Author:** Muhammad Atif — Senior Business Systems Analyst & Enterprise Architect
-**Domain:** Global Wires & Payments Technology, Canadian D-SIB (ACE integration, ISO 20022 CBPR+ migration)
+**Domain:** Wires & payments technology at a Canadian D-SIB (IBM ACE integration, ISO 20022 CBPR+ migration)
 **Version:** v3 — supersedes v2. Single source of truth.
 **Status:** Working system in daily use. Measured 67% Top-1 / 81% Top-K retrieval. Two production-grade generation providers (local Qwen3:8b unlimited, hosted Gemini 2.5 Flash for breadth). Explicit external-research mode with provenance. PDF export. Roadmap to Path 1 / Path 2 / Path 3 / Multi-hop is concrete.
 
@@ -912,7 +912,7 @@ The reason the RAG system can answer a question about, say, *"the trade-offs bet
 
 - Read OSFI B-13 end-to-end and authored 20 notes on it
 - Read three Azure Key Vault architectural references and authored 12 notes
-- Read CIBC-internal tokenization patterns (where allowed) and authored 8 notes
+- Read the bank's internal tokenization patterns (where allowed) and authored 8 notes
 - Wikilinked every B-13 expectation to every Key Vault control it engages
 - Re-read OSFI B-13 a year later when it was updated, rewrote 6 of the 20 notes
 
@@ -1162,3 +1162,64 @@ python3 research.py "your question" "gap one" "gap two"
 *End of document. All numbers measurable; all code in the repository; eval harness rerunnable on demand; partial-recovery handles the messy cases honestly; limitations named in hard register; the next increments are concrete.*
 
 *The brain is the vault. The AI is the interface. The journey is the artifact.*
+
+---
+
+# Addendum — 2026 State Update (appended; v3 body unchanged above)
+
+*Append-only log of material changes since the v3 body was written. The body above remains the canonical design narrative; this records what has moved.*
+
+## Vault growth
+- **Payments "End to End" module** added under SWIFT-Vault, stamped/chunked/embedded through the standard pipeline.
+- **ODS-Vault** authored: a deep reference set for supporting a payments Operational Data Store on Azure. Ten notes (index through governance): fundamentals; NFR catalog; ingestion patterns (CDC vs business events vs batch); Azure Event Hubs deep dive; business-event design; reconciliation and lineage; the outbox/dual-write pattern; security/PII/residency NFRs (CMK, tokenization, crypto-shredding for the PIPEDA-erasure-vs-immutable-log tension); governance (Microsoft Purview + BCBS 239 + the "do we even need a physical ODS?" question).
+
+## Operational maturity
+- **Public repo live** (this repository): engine only; the knowledge vault stays private by design ("code public, knowledge private"). Secrets and corpus excluded; hardcoded paths de-personalized.
+- **Security hygiene:** API key rotation + redaction of `key=...` from error/log output established as standing practice after a key was observed leaking through an error message.
+
+## Runbook formalized
+The add-notes loop is a documented, repeatable runbook: (0) find genuinely new notes; (1) author the four-field how-layer — always Claude-authored, never hand-authored; (2) stamp (idempotent) → chunk → embed → eval → acceptance query. **Never force a vault-wide re-stamp** (huge effort, zero retrieval gain); re-chunk + re-embed is how the index is refreshed.
+
+## Depth standard codified
+Technical content must be **expert-level, reasoned from both a senior BSA and a senior Solutions Architect perspective** — concrete patterns, service trade-offs, failure modes and specific regulatory anchors. Surface-level summaries are rejected.
+
+---
+
+# Addendum — November 2026
+
+## Corpus
+| | Then (v3 body) | Now |
+|---|---|---|
+| Notes | 981 in 15 vaults | **1,443 in 19 vaults** |
+| Chunks | 38,401 | **45,124** (43,681 content + 1,443 how-layer) |
+| Wikilink edges | 5,361 | **8,274** |
+| How-layer coverage | 981 / 981 | **1,443 / 1,443** |
+
+New since the last addendum: two book-study modules on quantum readiness and the history and physics of quantum computing (original synthesis notes, not reproductions); a QGSS 2026 Qiskit lab track (circuits, noise and benchmarking, error mitigation, quantum-advantage evaluation); fifteen more payments notes (RTR deep dive, CLS, LEI, API patterns, orchestration, reconciliation as a control discipline, scheme access models, testing and certification, PAD, SWIFT Alliance and CSP); a senior-BSA questioning playbook.
+
+**Lesson — the copy drifts silently.** The laptop working copy of the vault had not been synced from the live Obsidian vault for over two months; 25 notes existed only in the live vault and 13 more had newer content there. New-note detection is now a diff of the live vault against both the working copy and the authored batch keys, never "whatever is in the working copy".
+
+## Retrieval
+Hybrid retrieval (BM25 + semantic, fused with RRF) is in production: **76% Top-1 / 86% Top-K** on the 21-query set, holding steady while the vault grew by ~100 notes. The cross-encoder reranker stays **off** — it measured worse than plain RRF on this vault. One remaining miss is new content competing correctly (a book note on quantum-safe migration now outranks the expected note for a migration question): the eval needs multi-target answers before it can tell "wrong" from "also right".
+
+## The Drill — active recall over the whole vault (`quiz/`)
+Retrieval only answers questions already asked; the Drill asks them. It is a separate service over the same `chunks.jsonl`:
+- Every substantive note becomes a spaced-repetition card (SM-2 variant); new cards enter at a daily limit, least-covered vault first.
+- The local model writes each question from the note's own text and rotates the type per note: explain, apply to a scenario, compare, spot the error, plus elicit / specify / design / regulatory questions from the how-layer. Long notes rotate through windows of the text.
+- Free-text answers are marked per key point (hit / partial / missed) with factual errors listed. **The score is computed in code, not taken from the model**, so grading cannot drift generous.
+- A background worker prepares the next questions and yields to grading, hiding local-model latency.
+
+First live use confirmed the grading is strict in the right way: vague one-line answers scored 0 with point-by-point reasons.
+
+## Name redaction before indexing
+Everything the apps show is now free of employer, program and system names while the vault itself is untouched. An optional, git-ignored rule file rewrites every chunk before `chunks.jsonl` is written (context-aware: "at X" → "at the D-SIB", identifiers such as BICs and internal domains replaced with neutral equivalents, wikilinks and titles redacted consistently so all 257k link resolutions survive). Because chunk IDs are computed before redaction, `apply_redaction_to_index.py` can push a rule change into the live index **in place, reusing the existing vectors** — two minutes instead of a forty-minute re-embed. Verification is whole-word, after a substring check produced false positives on unrelated tokens.
+
+## Hosting
+Both apps are published through a locally-managed **Cloudflare Tunnel** behind **Cloudflare Access**: the RAG app for a small allow-list, the Drill single-user because its review schedule is personal. The app, the Drill and the tunnel each run as a `launchd` agent that starts at login and restarts on failure. Cost: $0. Constraint: the host laptop must be awake and online; moving the stack to an always-on home-lab container (with hosted generation for speed, local embeddings for privacy) is the documented next step if that becomes limiting.
+
+## Next increments (re-ranked)
+1. **Eval suite v2:** ~50–75 queries with multi-target answers, covering the new modules.
+2. **Drill calibration** after a few weeks of real reviews: partial-credit thresholds, question-type mix, daily new-card limit.
+3. **Self-stamping pipeline** to remove the authoring bottleneck.
+4. **Always-on host** if laptop-bound availability becomes the constraint.
+

@@ -9,19 +9,19 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-# ---- paths (point DATA_DIR at the external 1.5TB SSD on the Mac Pro) ----
-DATA_DIR        = os.getenv("DATA_DIR", "/data/brain")
-CHUNKS_PATH     = os.getenv("CHUNKS_PATH", os.path.join(DATA_DIR, "chunks.jsonl"))
-CHROMA_DIR      = os.getenv("CHROMA_DIR", os.path.join(DATA_DIR, "chroma"))
+# ---- paths (~ is expanded, so .env can use ~/brain/...) ----
+DATA_DIR        = os.path.expanduser(os.getenv("DATA_DIR", "~/brain"))
+CHUNKS_PATH     = os.path.expanduser(os.getenv("CHUNKS_PATH", os.path.join(DATA_DIR, "chunks.jsonl")))
+CHROMA_DIR      = os.path.expanduser(os.getenv("CHROMA_DIR", os.path.join(DATA_DIR, "chroma")))
 COLLECTION      = os.getenv("COLLECTION", "second_brain")
 
 # ---- embeddings (always local Ollama) ----
 OLLAMA_URL      = os.getenv("OLLAMA_URL", "http://localhost:11434")
-EMBED_MODEL     = os.getenv("EMBED_MODEL", "nomic-embed-text")
+EMBED_MODEL     = os.getenv("EMBED_MODEL", "mxbai-embed-large")
 
 # ---- generation provider: "ollama" (local) | "gemini" (free cloud) ----
 GEN_PROVIDER    = os.getenv("GEN_PROVIDER", "ollama")
-GEN_MODEL       = os.getenv("GEN_MODEL", "qwen2.5:7b")          # ollama
+GEN_MODEL       = os.getenv("GEN_MODEL", "qwen3:8b")             # ollama
 GEMINI_MODEL    = os.getenv("GEMINI_MODEL", "gemini-3.5-flash") # gemini
 GEMINI_API_KEY  = os.getenv("GEMINI_API_KEY", "")
 

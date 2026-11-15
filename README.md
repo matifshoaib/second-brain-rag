@@ -2,7 +2,7 @@
 
 # Second Brain RAG
 
-**A local-first retrieval-augmented generation system over a 1,348-note knowledge vault.**
+**A local-first retrieval-augmented generation system over a 1,443-note knowledge vault — plus a spaced-repetition Drill that checks me on every note.**
 
 Answers working questions from my own notes — not from training data — with every claim traceable to the note it came from.
 
@@ -11,7 +11,7 @@ Answers working questions from my own notes — not from training data — with 
 ![ChromaDB](https://img.shields.io/badge/ChromaDB-FF6B35)
 ![Ollama](https://img.shields.io/badge/Ollama-local--first-000000)
 ![Top-1](https://img.shields.io/badge/Top--1-76%25-2ea44f)
-![Chunks](https://img.shields.io/badge/chunks-42%2C587-5B21B6)
+![Chunks](https://img.shields.io/badge/chunks-45%2C124-5B21B6)
 
 </div>
 
@@ -19,18 +19,19 @@ Answers working questions from my own notes — not from training data — with 
 
 ## What it is
 
-An Obsidian vault of 1,348 interlinked notes — payments architecture, ISO 20022 and SWIFT,
+An Obsidian vault of 1,443 interlinked notes — payments architecture, ISO 20022 and SWIFT,
 financial-crime compliance, information security standards, cloud and platform engineering —
 made queryable in natural language, with retrieval quality measured rather than assumed.
 
 | | |
 |---|---|
-| **Notes indexed** | 1,348 across 18 topic vaults |
-| **Chunks** | 42,587 — 41,240 content, 1,347 practitioner-layer |
-| **Link graph** | 7,648 wikilink edges, traversed at query time |
+| **Notes indexed** | 1,443 across 19 topic vaults |
+| **Chunks** | 45,124 — 43,681 content, 1,443 practitioner-layer |
+| **Link graph** | 8,274 wikilink edges, traversed at query time |
 | **Retrieval** | 76% Top-1 · 86% Top-K on a fixed 21-query evaluation set |
 | **Median chunk** | 183 tokens · 85% within the 80–1,000 target band |
 | **Default generation** | Local. Nothing leaves the machine unless explicitly selected. |
+| **Active recall** | Drill: every note enters spaced repetition, LLM-written questions, answers graded against the note's own key points |
 
 ---
 
@@ -65,13 +66,15 @@ Obsidian vault
  embed_index.py     Ollama embeddings, 1024-dim              ->  ChromaDB
       │
       ▼
- retrieval.py       semantic -> refusal gate -> BM25 -> RRF -> rerank -> graph-hop
+ retrieval.py       semantic -> refusal gate -> BM25 -> RRF -> (rerank) -> graph-hop
       │
       ▼
  generate.py        local or cloud synthesis, faithfulness scoring, gap detection
       │
       ▼
- app.py             FastAPI service + static UI
+ app.py             FastAPI service + static UI          (port 8000)
+
+ chunks.jsonl ──►  quiz/quiz_app.py   Drill: spaced repetition over every note   (port 8010)
 ```
 
 ### The retrieval pipeline
@@ -89,8 +92,9 @@ tokens — `CBPR+`, `pacs.008`, `IPPROCS`, `SDN` — are precisely what dense em
 
 **4 · Reciprocal Rank Fusion.** Merges the semantic and lexical rankings into one ordering.
 
-**5 · Cross-encoder rerank.** `BAAI/bge-reranker-base` reorders the fused pool with full
-query–document attention.
+**5 · Cross-encoder rerank (off by default).** `BAAI/bge-reranker-base` can reorder the fused
+pool with full query–document attention. It measured *worse* than plain RRF on this vault, so it
+ships disabled (`RERANK_ENABLED=false`) and stays available for re-evaluation.
 
 **6 · Know-vs-do routing.** A query classifier detects *how do I*, *what goes wrong when*, and
 *how do I verify* phrasing, boosting the practitioner layer for those questions only — so
@@ -128,6 +132,23 @@ web-sourced rather than vault-sourced.
 
 ---
 
+## The Drill — active recall over every note
+
+Retrieval answers questions I already know to ask. The Drill asks the questions instead, so the
+vault gets *learned*, not just stored. It reads the same `chunks.jsonl` and runs as its own
+service; it never touches the index.
+
+| | |
+|---|---|
+| **Coverage** | Every note becomes a card (stubs, MOCs, indexes and build trackers excluded). New cards enter at a daily limit, drawn from the least-covered vault first, so every vault keeps moving. |
+| **Questions** | Written by the local model from the note's own text. Types rotate per note: explain, apply to a scenario, compare, spot the error — plus elicit, specify, design and regulatory questions drawn from the practitioner layer. Long notes are split into windows and each review uses a different one. |
+| **Grading** | The model marks each key point hit / partial / missed and lists factual errors. **The score is computed in code** (hit 1, partial 0.5, minus 12 per error) — not taken from the model — so it cannot be generous. |
+| **Scheduling** | SM-2 variant. The score suggests Again / Hard / Good / Easy; I can override with one key, and the next interval is shown under each option. Mastered = next review three weeks or more out. |
+| **Latency** | A background worker prepares the next questions while I answer, and steps aside whenever a grade is waiting. |
+| **Progress** | Coverage and mastery rings, due count, streak, 7-day forecast, per-vault bars, weakest notes. |
+
+---
+
 ## Measured results
 
 Retrieval is evaluated against a fixed query set with known-correct target notes, reported as
@@ -137,6 +158,7 @@ Top-1 (correct note ranked first) and Top-K (correct note anywhere in the return
 |---|:---:|:---:|
 | Semantic only | 67% | 86% |
 | **+ BM25 hybrid fusion** | **76%** | **86%** |
+| + BM25, vault grown to 1,443 notes | 76% | 86% |
 
 ```bash
 python3 eval_retrieval.py --md report.md
@@ -187,22 +209,25 @@ The change was confined to the nine-note pilot and **not rolled out** to the vau
 | Vector store | ChromaDB, persistent | Local, serverless, sufficient at this scale |
 | Embeddings | Ollama, 1024-dim | Runs offline — vault content never leaves the machine |
 | Lexical | `rank_bm25` | Exact technical tokens that embeddings blur |
-| Reranker | `BAAI/bge-reranker-base` | Cross-encoder precision over a small fused pool |
+| Reranker | `BAAI/bge-reranker-base` | Available; off by default after measuring worse than RRF |
 | Generation, default | Ollama `qwen3:8b` | Local and private by default |
 | Generation, optional | Gemini 3.5 Flash | Stronger synthesis, opt-in per query |
 | API | FastAPI + uvicorn | Minimal surface, fast startup |
 | Frontend | Static HTML | No build step, no framework churn |
+| Drill store | SQLite (WAL) | One local file for schedule, questions and review history |
 
 ---
 
 ## Deployment
 
-Runs locally on `localhost:8000`.
+Runs locally — the RAG app on `localhost:8000`, the Drill on `localhost:8010` — each as a
+`launchd` agent that starts at login and restarts on failure.
 
-For remote access it is published as a **private service behind Cloudflare Tunnel with Zero
+For remote access both are published as **private services behind Cloudflare Tunnel with Zero
 Trust access control** — egress-only, no inbound ports, no static IP, and no VPN client
 required on the accessing device. Authentication is enforced at the network edge before any
-request reaches the application.
+request reaches the application, with a separate policy per app: the RAG app is shared with a
+small allow-list, the Drill is single-user because its review schedule is personal.
 
 ---
 
@@ -229,6 +254,7 @@ python3 embed_index.py
 
 # 5 · run
 uvicorn app:app --port 8000
+python3 quiz/quiz_app.py            # Drill on :8010 (see quiz/README.md)
 ```
 
 ---
@@ -243,6 +269,11 @@ uvicorn app:app --port 8000
 - **Vault content is gitignored.** `chunks.jsonl`, `chroma/`, and the vault working copies
   never enter version control.
 - **Local by default.** Cloud generation is a deliberate per-query choice, never a fallback.
+- **Name redaction before indexing.** An optional, git-ignored `redact.py` rewrites every chunk
+  before `chunks.jsonl` is written, so employer, program and system names never reach the index,
+  answers or the Drill. The vault itself is untouched. `apply_redaction_to_index.py` pushes a
+  rule change into the live index in place — chunk IDs are stable, so existing vectors are
+  reused and no re-embed is needed (about two minutes instead of forty).
 
 ---
 
@@ -258,7 +289,10 @@ stamp_apply.py       practitioner-layer injection
 eval_retrieval.py    retrieval evaluation harness
 eval_sanctions.py    A/B harness for schema experiments
 patch_router.py      self-testing patch for the query router
+apply_redaction_to_index.py   push redacted text into the live index without re-embedding
 ui/index.html        frontend
+quiz/                Drill: engine.py (scheduler, generation, grading), quiz_app.py (API),
+                     ui/drill.html, launchd template, README
 backend/config.py    configuration
 ```
 
