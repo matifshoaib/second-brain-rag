@@ -22,7 +22,7 @@ EMBED_MODEL     = os.getenv("EMBED_MODEL", "mxbai-embed-large")
 # ---- generation provider: "ollama" (local) | "gemini" (free cloud) ----
 GEN_PROVIDER    = os.getenv("GEN_PROVIDER", "ollama")
 GEN_MODEL       = os.getenv("GEN_MODEL", "qwen3:8b")             # ollama
-GEMINI_MODEL    = os.getenv("GEMINI_MODEL", "gemini-3.5-flash") # gemini
+GEMINI_MODEL    = os.getenv("GEMINI_MODEL", "gemini-3.6-flash") # gemini
 GEMINI_API_KEY  = os.getenv("GEMINI_API_KEY", "")
 
 # ---- retrieval tuning ----
